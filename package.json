@@ -15,13 +15,13 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build --config vite.config.client.ts",
+    "build:client": "vite build",
     "build:server": "vite build --config vite.config.server.ts",
     "start": "node dist/server/node-build.mjs",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
     "typecheck": "tsc",
-    "vercel-build": "npm run build:client"
+    "vercel-build": "pnpm run build:client"
   },
   "dependencies": {
     "react": "^18.3.1",
