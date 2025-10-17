@@ -751,6 +751,7 @@ function OrgChartVisualization() {
   };
 
   const handleEmployeeClick = (employeeId: string) => {
+    // Only set as selected employee to show subordinates
     setSelectedEmployee(selectedEmployee === employeeId ? null : employeeId);
   };
 
@@ -920,11 +921,12 @@ function OrgChartVisualization() {
                       <span className="text-xs text-gray-500">
                         {node.directReports} direct reports
                       </span>
-                                <Button
-                                  variant="ghost"
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
+                          // Just toggle the expand/collapse, don't set selected employee
                           toggleNode(node.id);
                         }}
                         className="h-6 w-6 p-0 hover:bg-gray-100"
@@ -934,7 +936,7 @@ function OrgChartVisualization() {
                         ) : (
                           <Plus className="h-3 w-3" />
                         )}
-                              </Button>
+                      </Button>
                             </div>
                   )}
                 </CardContent>
