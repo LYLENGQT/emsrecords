@@ -15,6 +15,8 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: "dist/spa",
+    assetsDir: "assets",
+    base: "/",
   },
   plugins: [react(), expressPlugin()],
   resolve: {
