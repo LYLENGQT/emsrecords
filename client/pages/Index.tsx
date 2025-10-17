@@ -1420,9 +1420,6 @@ export default function Index() {
                 >
                   <Users className="h-5 w-5" />
                   <span>Employee Profiles</span>
-                  {activeTab === "profiles" && (
-                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="orgchart" 
@@ -1430,9 +1427,6 @@ export default function Index() {
                 >
                   <BarChart3 className="h-5 w-5" />
                   <span>Organizational Chart</span>
-                  {activeTab === "orgchart" && (
-                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="documents" 
@@ -1440,9 +1434,6 @@ export default function Index() {
                 >
                   <FileText className="h-5 w-5" />
                   <span>Document Center</span>
-                  {activeTab === "documents" && (
-                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
-                  )}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="settings" 
@@ -1450,9 +1441,6 @@ export default function Index() {
                 >
                   <Settings className="h-5 w-5" />
                   <span>System Configuration</span>
-                  {activeTab === "settings" && (
-                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
-                  )}
                 </TabsTrigger>
               </TabsList>
             </div>
