@@ -1,7 +1,7 @@
 {
   "name": "employee-records-management-system",
   "description": "A comprehensive Employee Records Management System with organizational charts, document management, and employee profiles",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "pkg": {
