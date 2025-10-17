@@ -738,6 +738,7 @@ type ViewMode = "list" | "grid" | "chart";
 // Organizational Chart Visualization Component
 function OrgChartVisualization() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1"])); // CEO expanded by default
+  const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
   
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -747,6 +748,27 @@ function OrgChartVisualization() {
       newExpanded.add(nodeId);
     }
     setExpandedNodes(newExpanded);
+  };
+
+  const handleEmployeeClick = (employeeId: string) => {
+    setSelectedEmployee(selectedEmployee === employeeId ? null : employeeId);
+  };
+
+  const getSubordinates = (employeeId: string) => {
+    const employee = mockOrgChart.find(emp => emp.id === employeeId);
+    if (!employee) return [];
+    
+    const subordinates: any[] = [];
+    const findSubordinates = (nodeId: string) => {
+      const node = mockOrgChart.find(n => n.id === nodeId);
+      if (node) {
+        subordinates.push(node);
+        node.children.forEach(childId => findSubordinates(childId));
+      }
+    };
+    
+    employee.children.forEach(childId => findSubordinates(childId));
+    return subordinates;
   };
 
   const getVisibleNodes = () => {
@@ -863,7 +885,12 @@ function OrgChartVisualization() {
                 transform: 'translateX(-50%)',
               }}
             >
-              <Card className="w-60 bg-white shadow-lg border-0 rounded-xl hover:shadow-xl transition-shadow duration-200">
+              <Card 
+                className={`w-60 bg-white shadow-lg border-0 rounded-xl hover:shadow-xl transition-shadow duration-200 cursor-pointer ${
+                  selectedEmployee === node.id ? 'ring-2 ring-blue-500 shadow-blue-200' : ''
+                }`}
+                onClick={() => handleEmployeeClick(node.id)}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3 mb-3">
                     <Avatar className="h-10 w-10 ring-2 ring-blue-100">
@@ -896,7 +923,10 @@ function OrgChartVisualization() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleNode(node.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleNode(node.id);
+                        }}
                         className="h-6 w-6 p-0 hover:bg-gray-100"
                       >
                         {isExpanded ? (
@@ -914,6 +944,68 @@ function OrgChartVisualization() {
         })}
         </div>
       </div>
+      
+      {/* Subordinates Display */}
+      {selectedEmployee && (
+        <div className="mt-8 bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Subordinates of {mockOrgChart.find(emp => emp.id === selectedEmployee)?.name}
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedEmployee(null)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {getSubordinates(selectedEmployee).map((subordinate) => (
+              <Card key={subordinate.id} className="bg-white border border-gray-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10 ring-2 ring-blue-100">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+                        {subordinate.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-900 truncate">
+                        {subordinate.name}
+                      </h4>
+                      <p className="text-xs text-gray-600 truncate">
+                        {subordinate.title}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <Badge 
+                    variant="secondary" 
+                    className={`text-xs mt-2 ${getDepartmentColor(subordinate.department)}`}
+                  >
+                    {subordinate.department}
+                  </Badge>
+                  
+                  <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>Level {subordinate.level}</span>
+                    <span>{subordinate.directReports} reports</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {getSubordinates(selectedEmployee).length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <Users className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+              <p>No subordinates found for this employee</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
