@@ -10,11 +10,21 @@ import { useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
+// Force set title immediately when script loads
+document.title = "Employee Records Management System - EMS";
+
 const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    document.title = "Employee Records Management System";
+    // Force set title immediately and on any navigation
+    document.title = "Employee Records Management System - EMS";
+    
+    // Also set it in the head element as backup
+    const titleElement = document.querySelector('title');
+    if (titleElement) {
+      titleElement.textContent = "Employee Records Management System - EMS";
+    }
   }, []);
 
   return (
