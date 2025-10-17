@@ -5,7 +5,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/local/tabs";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -22,7 +22,6 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,17 +38,14 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-  TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
   CalendarDays,
   EllipsisVertical,
   LayoutGrid,
   Plus,
-  Minus,
   Table as TableIcon,
   User,
-  ArrowLeftRight,
   FileText,
   Eye,
   Download,
@@ -57,13 +53,35 @@ import {
   Pencil,
   Trash2,
   Upload,
-  ArrowUpDown,
   Building2,
-  ChevronLeft,
+  ChevronDown,
   ChevronRight,
-  Bot,
-  Send,
+  Users,
+  TrendingUp,
+  Clock,
+  Shield,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Mail,
+  Phone,
+  MapPin,
+  Briefcase,
+  Star,
+  Award,
+  CheckCircle,
+  AlertCircle,
   X,
+  ArrowLeft,
+  DollarSign,
+  BarChart3,
+  GraduationCap,
+  Calendar,
+  Settings,
+  LogOut,
+  Home,
+  Minus,
+  ArrowUpDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -85,2662 +103,3145 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { EMPLOYEES, type Employee } from "@/lib/data/employees";
-import AddReportModalTemplate from "@/components/local/AddReportModalTemplate";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-type OrgNode = {
-  name: string;
-  title: string;
-  department: string;
-  directReports?: number;
-  children?: OrgNode[];
+// Mock data
+const mockEmployees = [
+  {
+    id: "1",
+    employeeId: "EMP001",
+    firstName: "Sarah",
+    lastName: "Mitchell",
+    email: "sarah.mitchell@company.com",
+    phone: "+1 (555) 123-4567",
+    position: "Senior Software Engineer",
+        department: "Engineering",
+    skills: ["React", "TypeScript", "Node.js", "Python", "AWS", "Docker"],
+    status: "Active",
+    joinedDate: "2023-01-15",
+    workEmail: "sarah.mitchell@company.com",
+    location: "San Francisco, CA",
+    reportingManager: "John Smith",
+    employmentType: "Full-time",
+    workLocation: "Head Office",
+    shiftSchedule: "Day",
+    avatar: null,
+  },
+  {
+    id: "2",
+    employeeId: "EMP002",
+    firstName: "Marcus",
+    lastName: "Thompson",
+    email: "marcus.thompson@company.com",
+    phone: "+1 (555) 234-5678",
+    position: "Product Manager",
+    department: "Product",
+    skills: ["Product Strategy", "Agile", "User Research", "Analytics"],
+    status: "Active",
+    joinedDate: "2022-08-20",
+    workEmail: "marcus.thompson@company.com",
+    location: "New York, NY",
+    reportingManager: "Lisa Chen",
+    employmentType: "Full-time",
+    workLocation: "Head Office",
+    shiftSchedule: "Day",
+    avatar: null,
+  },
+  {
+    id: "3",
+    employeeId: "EMP003",
+    firstName: "Amanda",
+    lastName: "Foster",
+    email: "amanda.foster@company.com",
+    phone: "+1 (555) 345-6789",
+    position: "Business Analyst",
+    department: "Product",
+    skills: ["Business Analysis", "Process Optimization", "Data Analysis"],
+    status: "Active",
+    joinedDate: "2023-05-30",
+    workEmail: "amanda.foster@company.com",
+    location: "Austin, TX",
+    reportingManager: "Lisa Chen",
+    employmentType: "Full-time",
+    workLocation: "Remote",
+    shiftSchedule: "Day",
+    avatar: null,
+  },
+  {
+    id: "4",
+    employeeId: "EMP004",
+    firstName: "James",
+    lastName: "Rodriguez",
+    email: "james.rodriguez@company.com",
+    phone: "+1 (555) 456-7890",
+    position: "ML Engineer",
+            department: "Engineering",
+    skills: ["Software Development", "Python", "Machine Learning"],
+    status: "Active",
+    joinedDate: "2023-06-12",
+    workEmail: "james.rodriguez@company.com",
+    location: "Seattle, WA",
+    reportingManager: "John Smith",
+    employmentType: "Full-time",
+    workLocation: "Head Office",
+    shiftSchedule: "Day",
+    avatar: null,
+  },
+  {
+    id: "5",
+    employeeId: "EMP005",
+    firstName: "Priya",
+    lastName: "Patel",
+    email: "priya.patel@company.com",
+    phone: "+1 (555) 567-8901",
+    position: "Finance Analyst",
+    department: "Finance",
+    skills: ["Financial Analysis", "Accounting", "Excel"],
+    status: "Active",
+    joinedDate: "2023-07-08",
+    workEmail: "priya.patel@company.com",
+    location: "Chicago, IL",
+    reportingManager: "David Kim",
+    employmentType: "Full-time",
+    workLocation: "Head Office",
+    shiftSchedule: "Day",
+    avatar: null,
+  },
+];
+
+const mockDocuments = [
+  {
+    id: "1",
+    title: "Employee Handbook 2024",
+    category: "Policies",
+    department: "Human Resources",
+    fileType: "PDF",
+    uploadDate: "2024-01-15",
+    expirationDate: "2025-01-15",
+    uploadedBy: "Sarah Johnson",
+    status: "Active",
+    downloads: 127,
+  },
+  {
+    id: "2",
+    title: "Data Privacy Policy Update",
+    category: "Compliance",
+    department: "Legal",
+    fileType: "PDF",
+    uploadDate: "2023-08-22",
+    expirationDate: "2024-08-22",
+    uploadedBy: "David Park",
+    status: "Active",
+    downloads: 89,
+  },
+  {
+    id: "3",
+    title: "Financial Audit Report 2023",
+    category: "Compliance",
+    department: "Finance",
+    fileType: "PDF",
+    uploadDate: "2023-12-15",
+    expirationDate: null,
+    uploadedBy: "Emily Rodriguez",
+    status: "Archived",
+    downloads: 45,
+  },
+  {
+    id: "4",
+    title: "Performance Review Template",
+    category: "Forms & Templates",
+    department: "Human Resources",
+    fileType: "DOCX",
+    uploadDate: "2024-01-10",
+    expirationDate: null,
+    uploadedBy: "Mike Chen",
+    status: "Active",
+    downloads: 89,
+  },
+  {
+    id: "5",
+    title: "Employee Contract Template",
+    category: "Employee Records",
+    department: "Human Resources",
+    fileType: "DOCX",
+    uploadDate: "2024-01-20",
+    expirationDate: null,
+    uploadedBy: "Sarah Johnson",
+    status: "Active",
+    downloads: 78,
+  },
+  {
+    id: "6",
+    title: "Training Certification Course",
+    category: "Training",
+    department: "Human Resources",
+    fileType: "PDF",
+    uploadDate: "2024-01-18",
+    expirationDate: "2025-01-18",
+    uploadedBy: "Lisa Thompson",
+    status: "Active",
+    downloads: 156,
+  },
+  {
+    id: "7",
+    title: "Code of Conduct Policy",
+    category: "Policies",
+    department: "All Departments",
+    fileType: "PDF",
+    uploadDate: "2024-01-12",
+    expirationDate: null,
+    uploadedBy: "Amanda Foster",
+    status: "Active",
+    downloads: 203,
+  },
+  {
+    id: "8",
+    title: "Leave Request Form",
+    category: "Forms & Templates",
+    department: "Human Resources",
+    fileType: "XLSX",
+    uploadDate: "2024-01-08",
+    expirationDate: null,
+    uploadedBy: "Mike Chen",
+    status: "Active",
+    downloads: 92,
+  },
+  {
+    id: "9",
+    title: "Data Protection Compliance Guide",
+    category: "Compliance",
+    department: "IT",
+    fileType: "PDF",
+    uploadDate: "2024-01-03",
+    expirationDate: "2024-12-31",
+    uploadedBy: "James Rodriguez",
+    status: "Active",
+    downloads: 134,
+  },
+  {
+    id: "10",
+    title: "Onboarding Checklist",
+    category: "Training",
+    department: "Human Resources",
+    fileType: "DOCX",
+    uploadDate: "2023-12-15",
+    expirationDate: null,
+    uploadedBy: "Sarah Johnson",
+    status: "Active",
+    downloads: 167,
+  },
+];
+
+// Mock data for employee profile details
+const mockEmployeeProfileData = {
+  id: "1",
+  employeeId: "EMP001",
+  firstName: "Sarah",
+  lastName: "Johnson",
+  email: "sarah.johnson@company.com",
+  phone: "+1 (555) 010-1200",
+  department: "Engineering",
+  location: "San Francisco, CA",
+  joinedDate: "2022-03-15",
+  status: "Active",
+  
+  // Personal Info
+  personalInfo: {
+    middleName: "Elizabeth",
+    dateOfBirth: "1990-05-20",
+    gender: "Female",
+    maritalStatus: "Single",
+    nationality: "American",
+    alternatePhone: "+1 (555) 010-1201",
+    workEmail: "sarah.j@company.com",
+    streetAddress: "123 Tech Street",
+    city: "San Francisco",
+    state: "California",
+    zipCode: "94105",
+    emergencyContact: {
+      name: "John Johnson",
+      phone: "+1 (555) 010-1202",
+      relationship: "Father",
+      alternatePhone: "+1 (555) 010-1203"
+    }
+  },
+  
+  // Work Details
+  workDetails: {
+    position: "Senior Software Engineer",
+    department: "Engineering",
+    reportingManager: "Michael Rodriguez",
+    employmentStatus: "Active",
+    employmentType: "Full-time",
+    dateHired: "2022-03-15",
+    probationEndDate: "2022-09-15",
+    workLocation: "San Francisco Office",
+    shiftSchedule: "9:00 AM - 6:00 PM",
+    workPhone: "+1 (555) 123-4567",
+    positionHistory: [
+      {
+        position: "Junior Software Engineer",
+        duration: "2022-03-15 to 2023-03-15",
+        reason: "Promotion"
+      },
+      {
+        position: "Software Engineer",
+        duration: "2023-03-15 to 2024-01-15",
+        reason: "Performance review"
+      }
+    ],
+    workHistory: [
+      {
+        companyName: "TechCorp Inc.",
+        position: "Software Developer",
+        duration: 2,
+        location: "New York, NY",
+        employmentType: "Full-time",
+        reasonForLeaving: "Career advancement"
+      }
+    ]
+  },
+  
+  // Skills
+  skills: [
+    { name: "React", experience: 4, level: "Expert" },
+    { name: "TypeScript", experience: 3, level: "Advanced" },
+    { name: "Node.js", experience: 3, level: "Advanced" },
+    { name: "Python", experience: 2, level: "Intermediate" },
+    { name: "AWS", experience: 2, level: "Intermediate" }
+  ],
+  
+  // Compensation
+  compensation: {
+    currentSalary: "******", // Masked
+    lastReview: "2024-01-15",
+    nextReview: "2025-01-15",
+    history: [
+      {
+        dateOfChange: "2024-01-15",
+        salary: "$95,000",
+        changePercent: "+8%",
+        type: "Merit Increase",
+        currency: "USD",
+        position: "Senior Software Engineer"
+      },
+      {
+        dateOfChange: "2023-03-15",
+        salary: "$88,000",
+        changePercent: "+12%",
+        type: "Promotion",
+        currency: "USD",
+        position: "Software Engineer"
+      }
+    ]
+  },
+  
+  // Performance
+  performance: [
+    {
+      reviewPeriod: "Q4 2023",
+      reviewerName: "Michael Rodriguez",
+      rating: "4.5/5",
+      comments: "Excellent performance, strong technical skills and team collaboration."
+    },
+    {
+      reviewPeriod: "Q3 2023",
+      reviewerName: "Michael Rodriguez",
+      rating: "4.2/5",
+      comments: "Good progress on project deliverables, room for improvement in leadership."
+    }
+  ],
+  
+  // Training & Certifications
+  training: [
+    {
+      title: "React Advanced Patterns",
+      provider: "Tech Academy",
+      dateCompleted: "2023-08-15",
+      status: "Completed"
+    },
+    {
+      title: "AWS Cloud Practitioner",
+      provider: "Amazon Web Services",
+      dateCompleted: "2023-06-20",
+      status: "Completed"
+    }
+  ],
+  certifications: [
+    {
+      name: "AWS Certified Solutions Architect",
+      certificationId: "AWS-CSA-12345",
+      issuedOrganization: "Amazon Web Services",
+      certificateStatus: "Valid",
+      issuedDate: "2023-06-20",
+      expiryDate: "2026-06-20"
+    }
+  ],
+  
+  // Leave & Attendance
+  attendance: {
+    attendanceRate: 96.5,
+    punctualityRate: 94.2,
+    leaveBalance: [
+      { type: "Annual Leave", taken: 8, balance: 12 },
+      { type: "Sick Leave", taken: 3, balance: 7 },
+      { type: "Personal Leave", taken: 2, balance: 3 }
+    ],
+    leaveHistory: [
+      {
+        type: "Annual Leave",
+        duration: "2024-01-15 to 2024-01-22",
+        totalDays: 5,
+        approver: "Michael Rodriguez",
+        status: "Approved"
+      },
+      {
+        type: "Sick Leave",
+        duration: "2023-12-10 to 2023-12-12",
+        totalDays: 2,
+        approver: "Michael Rodriguez",
+        status: "Approved"
+      }
+    ]
+  },
+  
+  // Documents
+  documents: [
+    {
+      title: "Employment Contract",
+      fileType: "PDF",
+      fileSize: "2.1 MB",
+      uploadDate: "2022-03-15"
+    },
+    {
+      title: "Tax Form W-2",
+      fileType: "PDF",
+      fileSize: "1.5 MB",
+      uploadDate: "2023-01-31"
+    }
+  ],
+  
+  // Application History
+  applicationHistory: {
+    jobId: "JOB-2022-001",
+    applicationDate: "2022-02-15",
+    applicationMethod: "Career Portal",
+    screening: {
+      dateAdded: "2022-02-16",
+      status: "Approved",
+      approvedDate: "2022-02-20",
+      approvedBy: "HR Team"
+    },
+    interview: {
+      dateAdded: "2022-02-21",
+      steps: [
+        {
+          step: 1,
+          type: "Technical Interview",
+          date: "2022-02-25",
+          interviewerName: "Michael Rodriguez"
+        },
+        {
+          step: 2,
+          type: "System Design",
+          date: "2022-02-28",
+          interviewerName: "David Park"
+        }
+      ],
+      dateMovedToActivation: "2022-03-01",
+      approvedBy: "HR Manager"
+    },
+    activation: {
+      dateAdded: "2022-03-02",
+      activationConfirmedDate: "2022-03-10",
+      approvedBy: "HR Manager"
+    },
+    hired: {
+      dateAdded: "2022-03-15",
+      orientationCompletedDate: "2022-03-20",
+      integrationCompletedDate: "2022-04-15"
+    }
+  },
+  
+  // Access & Security
+  accessSecurity: {
+    accountActive: true,
+    hrAccess: false,
+    adminRights: false
+  }
 };
 
-const ORG_TREE: OrgNode[] = [
+const mockOrgChart = [
   {
+    id: "1",
     name: "Michael Rodriguez",
     title: "Chief Executive Officer",
     department: "Executive",
     directReports: 4,
-    children: [
-      {
-        name: "Sarah Mitchell",
-        title: "Chief Technology Officer",
-        department: "Engineering",
-        directReports: 3,
-        children: [
-          {
-            name: "James Rodriguez",
-            title: "Senior Software Engineer",
-            department: "Engineering",
-          },
-          {
-            name: "Emily Chen",
-            title: "Lead UX Designer",
-            department: "Engineering",
-          },
-          {
-            name: "Marcus Thompson",
-            title: "DevOps Manager",
-            department: "Engineering",
-          },
-        ],
-      },
-    ],
-  },
-];
-
-const DEPT_SUMMARY = [
-  {
-    department: "Design",
-    head: "Ava Thompson",
-    costCenter: "CC-1001",
-    members: 8,
+    status: "Active",
+    avatar: null,
+    parentId: null,
+    level: 1,
+    children: ["2", "3", "4", "5"],
   },
   {
+    id: "2",
+    name: "Sarah Mitchell",
+    title: "Chief Technology Officer",
     department: "Engineering",
-    head: "Liam Carter",
-    costCenter: "CC-2001",
-    members: 42,
+    directReports: 3,
+    status: "Active",
+    avatar: null,
+    parentId: "1",
+    level: 2,
+    children: ["6", "7", "8"],
   },
   {
+    id: "3",
+    name: "David Park",
+    title: "Chief Financial Officer",
     department: "Finance",
-    head: "Olivia Chen",
-    costCenter: "CC-3001",
-    members: 12,
+    directReports: 2,
+    status: "Active",
+    avatar: null,
+    parentId: "1",
+    level: 2,
+    children: ["9", "10"],
   },
   {
+    id: "4",
+    name: "Jessica Wang",
+    title: "Chief Marketing Officer",
     department: "Marketing",
-    head: "Noah Patel",
-    costCenter: "CC-4001",
-    members: 16,
+    directReports: 2,
+    status: "Active",
+    avatar: null,
+    parentId: "1",
+    level: 2,
+    children: ["11", "12"],
   },
   {
-    department: "Product",
-    head: "Emma Davis",
-    costCenter: "CC-5001",
-    members: 18,
+    id: "5",
+    name: "Amanda Foster",
+    title: "Chief Human Resources Officer",
+    department: "Human Resources",
+    directReports: 1,
+    status: "Active",
+    avatar: null,
+    parentId: "1",
+    level: 2,
+    children: ["13"],
+  },
+  {
+    id: "6",
+    name: "James Rodriguez",
+    title: "Senior Software Engineer",
+    department: "Engineering",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "2",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "7",
+    name: "Emily Chen",
+    title: "Lead UX Designer",
+    department: "Engineering",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "2",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "8",
+    name: "Marcus Thompson",
+    title: "DevOps Manager",
+    department: "Engineering",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "2",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "9",
+    name: "Priya Patel",
+    title: "Finance Manager",
+    department: "Finance",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "3",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "10",
+    name: "Robert Kim",
+    title: "Senior Accountant",
+    department: "Finance",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "3",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "11",
+    name: "Lisa Chang",
+    title: "Marketing Manager",
+    department: "Marketing",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "4",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "12",
+    name: "Alex Johnson",
+    title: "Content Strategist",
+    department: "Marketing",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "4",
+    level: 3,
+    children: [],
+  },
+  {
+    id: "13",
+    name: "Maria Garcia",
+    title: "HR Business Partner",
+    department: "Human Resources",
+    directReports: 0,
+    status: "Active",
+    avatar: null,
+    parentId: "5",
+    level: 3,
+    children: [],
   },
 ];
 
-function OrgListView() {
-  const total = 13;
-  const [collapsed, setCollapsed] = useState<Set<string>>(
-    () => new Set(ORG_TREE.map((n) => n.name)),
-  );
-  const [mode, setMode] = useState<"list" | "chart" | "manage">("list");
-  const [orgName, setOrgName] = useState("");
-  const [orgDept, setOrgDept] = useState<string>("all");
-  const [orgPage, setOrgPage] = useState(0);
-  const [zoom, setZoom] = useState<number>(0.8);
-  const toggle = (name: string) =>
-    setCollapsed((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
+type ViewMode = "list" | "grid" | "chart";
 
-  const [addReportOpen, setAddReportOpen] = useState(false);
-  const [reportTarget, setReportTarget] = useState<{
-    name: string;
-    role: string;
-  } | null>(null);
-
-  type DeptRow = {
-    department: string;
-    head: string;
-    costCenter: string;
-    members: number;
-  };
-  const [departmentsData, setDepartmentsData] =
-    useState<DeptRow[]>(DEPT_SUMMARY);
-  const { toast } = useToast();
-  const [deptDialogOpen, setDeptDialogOpen] = useState(false);
-  const [editingDeptIndex, setEditingDeptIndex] = useState<number | null>(null);
-  const [deptName, setDeptName] = useState("");
-  const [deptHead, setDeptHead] = useState("");
-  const [deptHeadPicker, setDeptHeadPicker] = useState(false);
-  const [deptCostCenter, setDeptCostCenter] = useState("");
-  const [deptMembers, setDeptMembers] = useState<number>(0);
-  const [confirmDeleteIndex, setConfirmDeleteIndex] = useState<number | null>(
-    null,
-  );
-
-  const msHeads = useMemo(
-    () => EMPLOYEES.map((e) => `${e.firstName} ${e.lastName}`),
-    [],
-  );
-  const [msQuery, setMsQuery] = useState("");
-  const [msDeptFilter, setMsDeptFilter] = useState<string>("all");
-  const [msPage, setMsPage] = useState(0);
-  const [msPageSize, setMsPageSize] = useState<number>(10);
-
-  function openAddDept() {
-    setEditingDeptIndex(null);
-    setDeptName("");
-    setDeptHead("");
-    setDeptCostCenter("");
-    setDeptMembers(0);
-    setDeptDialogOpen(true);
-  }
-  function openEditDept(index: number) {
-    const d = departmentsData[index];
-    setEditingDeptIndex(index);
-    setDeptName(d.department);
-    setDeptHead(d.head);
-    setDeptCostCenter(d.costCenter.replace(/^CC-/, ""));
-    setDeptMembers(d.members);
-    setDeptDialogOpen(true);
-  }
-  function saveDept() {
-    const name = deptName.trim();
-    const head = deptHead.trim();
-    const costCenterInput = deptCostCenter.trim().replace(/^CC-/, "");
-    const costCenter = costCenterInput ? `CC-${costCenterInput}` : "";
-    const members = Math.max(0, Number.isFinite(deptMembers) ? deptMembers : 0);
-    if (!name) return toast({ title: "Department name required" });
-    if (!costCenter) return toast({ title: "Cost Center is required" });
-    const row: DeptRow = { department: name, head, costCenter, members };
-    setDepartmentsData((arr) => {
-      if (editingDeptIndex === null) return [...arr, row];
-      const next = [...arr];
-      next[editingDeptIndex] = row;
-      return next;
-    });
-    setDeptDialogOpen(false);
-  }
-  function deleteDept() {
-    if (confirmDeleteIndex === null) return;
-    setDepartmentsData((arr) => arr.filter((_, i) => i !== confirmDeleteIndex));
-    setConfirmDeleteIndex(null);
-    toast({ title: "Department deleted" });
-  }
-
-  function download(filename: string, content: string, mime: string) {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-  function currentManagedRows(): DeptRow[] {
-    const q = msQuery.toLowerCase().trim();
-    return departmentsData.filter((d) => {
-      const matchesHead = !q || d.head.toLowerCase().includes(q);
-      const matchesDept =
-        msDeptFilter === "all" || d.department === msDeptFilter;
-      return matchesHead && matchesDept;
-    });
-  }
-  function exportCSV() {
-    const rows = currentManagedRows();
-    const headers = [
-      "Department",
-      "Department Head",
-      "Cost Center",
-      "Team Members",
-    ];
-    const csv = [
-      headers.join(","),
-      ...rows.map((r) =>
-        [r.department, r.head, r.costCenter, String(r.members)]
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(","),
-      ),
-    ].join("\n");
-    download("manage-structure.csv", csv, "text/csv;charset=utf-8;");
-    toast({ title: "Exported CSV", description: `${rows.length} record(s)` });
-  }
-  function exportXLS() {
-    const rows = currentManagedRows();
-    const xml = `<?xml version="1.0"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">\n<Worksheet ss:Name="ManageStructure"><Table>${["Department", "Department Head", "Cost Center", "Team Members"].map((h) => `<Cell><Data ss:Type=\"String\">${h}</Data></Cell>`).join("")}${rows.map((r) => `<Row><Cell><Data ss:Type=\"String\">${r.department}</Data></Cell><Cell><Data ss:Type=\"String\">${r.head}</Data></Cell><Cell><Data ss:Type=\"String\">${r.costCenter}</Data></Cell><Cell><Data ss:Type=\"Number\">${r.members}</Data></Cell></Row>`).join("")}</Table></Worksheet></Workbook>`;
-    download("manage-structure.xls", xml, "application/vnd.ms-excel");
-    toast({ title: "Exported Excel", description: `${rows.length} record(s)` });
-  }
-
-  const renderRows = (node: OrgNode, depth: number): React.ReactNode[] => {
-    const hasChildren = !!node.children?.length;
-    const isCollapsed = collapsed.has(node.name);
-    const rows: React.ReactNode[] = [];
-    const q = orgName.toLowerCase().trim();
-    const matchesQuery =
-      !q ||
-      node.name.toLowerCase().includes(q) ||
-      node.title.toLowerCase().includes(q);
-    const matchesDept =
-      orgDept === "all" || node.department.toLowerCase() === orgDept;
-    if (matchesQuery && matchesDept) {
-      rows.push(
-        <TableRow key={node.name}>
-          <TableCell className="py-2 text-sm">
-            <div
-              className="flex items-center gap-2"
-              style={{ marginLeft: depth * 16 }}
-            >
-              {hasChildren && (
-                <button
-                  type="button"
-                  aria-label={
-                    isCollapsed
-                      ? "Expand direct reports"
-                      : "Collapse direct reports"
-                  }
-                  onClick={() => toggle(node.name)}
-                  className="flex h-5 w-5 items-center justify-center rounded border text-[10px] text-muted-foreground hover:bg-accent"
-                >
-                  {isCollapsed ? ">" : "˅"}
-                </button>
-              )}
-              <span className="font-medium text-foreground">{node.name}</span>
-            </div>
-          </TableCell>
-          <TableCell className="py-2 text-xs text-muted-foreground">
-            {node.title}
-          </TableCell>
-          <TableCell className="py-2 text-xs">{node.department}</TableCell>
-          <TableCell className="py-2 text-xs">
-            {typeof node.directReports === "number"
-              ? node.directReports
-              : (node.children?.length ?? 0)}
-          </TableCell>
-          <TableCell className="py-2 text-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-7 w-7 p-0"
-                  aria-label={`Actions for ${node.name}`}
-                >
-                  <EllipsisVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem onClick={() => setMode("chart")}>
-                  View Chart
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    const idx = departmentsData.findIndex(
-                      (x) => x.department === node.department,
-                    );
-                    if (idx >= 0) {
-                      openEditDept(idx);
-                    } else {
-                      setEditingDeptIndex(null);
-                      setDeptName(node.department);
-                      setDeptHead(node.name);
-                      setDeptCostCenter("");
-                      setDeptMembers(0);
-                      setDeptDialogOpen(true);
-                    }
-                  }}
-                >
-                  Edit
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </TableCell>
-        </TableRow>,
-      );
+// Organizational Chart Visualization Component
+function OrgChartVisualization() {
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1"])); // CEO expanded by default
+  
+  const toggleNode = (nodeId: string) => {
+    const newExpanded = new Set(expandedNodes);
+    if (newExpanded.has(nodeId)) {
+      newExpanded.delete(nodeId);
+    } else {
+      newExpanded.add(nodeId);
     }
-    if (hasChildren && !isCollapsed) {
-      node.children?.forEach((child) => {
-        rows.push(...renderRows(child, depth + 1));
-      });
-    }
-    return rows;
+    setExpandedNodes(newExpanded);
   };
 
-  const deptColor = (d: string) =>
-    d === "Executive"
-      ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300"
-      : d === "Engineering"
-        ? "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
-        : d === "Finance"
-          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-          : d === "Marketing"
-            ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
-            : d === "Human Resources"
-              ? "bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/20 dark:text-fuchsia-300"
-              : "bg-muted text-foreground";
+  const getVisibleNodes = () => {
+    const visible = new Set<string>();
+    
+    const addNodeAndChildren = (nodeId: string) => {
+      visible.add(nodeId);
+      const node = mockOrgChart.find(n => n.id === nodeId);
+      if (node && expandedNodes.has(nodeId)) {
+        node.children.forEach(childId => addNodeAndChildren(childId));
+      }
+    };
+    
+    // Start with CEO
+    addNodeAndChildren("1");
+    return Array.from(visible).map(id => mockOrgChart.find(n => n.id === id)!);
+  };
 
-  useEffect(() => {
-    setOrgPage(0);
-  }, [orgName, orgDept]);
+  const visibleNodes = getVisibleNodes();
+  
+  const getNodePosition = (node: any) => {
+    const level = node.level;
+    const siblings = mockOrgChart.filter(n => n.parentId === node.parentId);
+    const index = siblings.findIndex(n => n.id === node.id);
+    
+    // Calculate center positioning with dynamic spacing
+    const nodeWidth = 240; // Card width (w-60 = 240px)
+    
+    // Dynamic spacing based on level and total siblings
+    let spacingBetween = 280; // Base spacing
+    if (level === 3) {
+      // Level 3 (individual contributors) - more compact but ensure no overlap
+      spacingBetween = Math.max(nodeWidth + 20, 200);
+    } else if (siblings.length > 4) {
+      // Many siblings - ensure minimum spacing to prevent overlap
+      spacingBetween = Math.max(nodeWidth + 40, 2000 / siblings.length);
+    }
+    
+    const totalWidth = (siblings.length - 1) * spacingBetween;
+    const containerCenter = 1000; // Center of 2000px container
+    const startX = containerCenter - (totalWidth / 2);
+    
+    // Add level-based horizontal offset to prevent overlapping
+    const levelOffset = (level - 1) * 20; // Slight offset for each level
+    
+    // Calculate total nodes at this level to adjust vertical spacing
+    const totalNodesAtLevel = mockOrgChart.filter(n => n.level === level).length;
+    const verticalSpacing = totalNodesAtLevel > 6 ? 220 : 180; // More space when many nodes
+    
+    return {
+      x: startX + (index * spacingBetween) + levelOffset,
+      y: (level - 1) * verticalSpacing + 80,
+    };
+  };
 
-  const ChartNode = ({ node }: { node: OrgNode }) => {
-    const hasChildren = !!node.children?.length;
-    const isCollapsed = collapsed.has(node.name);
-    const initials = node.name
-      .split(" ")
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join("");
-    return (
-      <div className="flex flex-col items-center">
-        <div className="rounded-xl border bg-card px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            {hasChildren && (
-              <button
-                type="button"
-                aria-label={
-                  isCollapsed
-                    ? "Expand direct reports"
-                    : "Collapse direct reports"
-                }
-                onClick={() => toggle(node.name)}
-                className="flex h-5 w-5 items-center justify-center rounded border text-[10px] text-muted-foreground hover:bg-accent"
-              >
-                {isCollapsed ? ">" : "˅"}
-              </button>
-            )}
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-xs font-semibold text-brand">
-              {initials}
-            </div>
-            <div className="leading-tight">
-              <div className="text-xs font-semibold text-foreground">
-                {node.name}
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                {node.title}
-              </div>
-            </div>
-          </div>
-          <div
-            className={cn(
-              "mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-medium",
-              deptColor(node.department),
-            )}
-          >
-            {node.department}
-          </div>
-        </div>
-        {hasChildren && !isCollapsed && (
-          <>
-            <div className="my-3 h-px w-24 bg-border" />
-            <div className="flex flex-wrap items-start justify-center gap-6">
-              {node.children!.map((child) => (
-                <div key={child.name} className="flex flex-col items-center">
-                  <div className="h-4 w-px bg-border" />
-                  <ChartNode node={child} />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    );
+  const getConnectionPath = (parentNode: any, childNode: any) => {
+    const parentPos = getNodePosition(parentNode);
+    const childPos = getNodePosition(childNode);
+    
+    const midY = (parentPos.y + childPos.y) / 2;
+    
+    return `M ${parentPos.x} ${parentPos.y + 80} L ${parentPos.x} ${midY} L ${childPos.x} ${midY} L ${childPos.x} ${childPos.y}`;
+  };
+
+  const getDepartmentColor = (department: string) => {
+    switch (department) {
+      case "Executive": return "bg-red-100 text-red-700 border-red-200";
+      case "Engineering": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Finance": return "bg-green-100 text-green-700 border-green-200";
+      case "Marketing": return "bg-orange-100 text-orange-700 border-orange-200";
+      case "Human Resources": return "bg-purple-100 text-purple-700 border-purple-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
   };
 
   return (
-    <div className="space-y-3">
-      {mode === "manage" && (
-        <div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setMode("list")}
-            className="h-8 rounded-lg px-4 text-xs font-medium bg-white text-[#111827] border border-[#d1d5db] hover:bg-gray-50"
-          >
-            ��� Back
-          </Button>
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <div
-          className={cn(
-            "flex items-center gap-3",
-            mode === "manage" && "font-poppins",
-          )}
-        >
-          <h3
-            className={cn(
-              "text-sm font-bold",
-              mode === "manage" && "font-poppins",
-            )}
-          >
-            {mode === "manage" ? "Manage Department" : ""}
-          </h3>
-        </div>
-        {mode === "manage" ? null : (
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <Button
-              type="button"
-              onClick={() => setMode("manage")}
-              className="h-8 rounded-lg px-4 text-xs font-medium bg-[#2563eb] text-white hover:bg-[#1e40af]"
-            >
-              <Building2 className="mr-1.5 h-4 w-4" /> Manage Department
-            </Button>
-            <div className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                aria-label="List view"
-                onClick={() => setMode("list")}
-                className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-md border",
-                  mode === "list"
-                    ? "bg-foreground text-background"
-                    : "text-foreground hover:bg-accent",
-                )}
-              >
-                <TableIcon className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                aria-label="Chart view"
-                onClick={() => setMode("chart")}
-                className={cn(
-                  "flex h-7 w-7 items-center justify-center rounded-md border",
-                  mode === "chart"
-                    ? "bg-foreground text-background"
-                    : "text-foreground hover:bg-accent",
-                )}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-            </div>
-            {mode === "chart" && (
-              <>
-                <span className="ml-2">{total} employees</span>
-                <div className="inline-flex items-center gap-1">
-                  <button
-                    type="button"
-                    aria-label="Zoom out"
-                    onClick={() =>
-                      setZoom((z) => Math.max(0.5, +(z - 0.1).toFixed(2)))
-                    }
-                    className="flex h-7 w-7 items-center justify-center rounded-md border text-foreground hover:bg-accent"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Zoom in"
-                    onClick={() =>
-                      setZoom((z) => Math.min(1.5, +(z + 0.1).toFixed(2)))
-                    }
-                    className="flex h-7 w-7 items-center justify-center rounded-md border text-foreground hover:bg-accent"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-      {mode === "manage" ? (
-        <div className="mt-2 font-poppins">
-          <div className="overflow-hidden rounded-lg border bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
-              <div className="font-poppins text-[16px] font-semibold">
-                Manage Structure
-              </div>
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      className="h-8 rounded-lg px-3 text-xs font-medium"
-                    >
-                      <Download className="mr-1.5 h-4 w-4" /> Export
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44">
-                    <DropdownMenuItem onClick={() => exportCSV()}>
-                      Export CSV
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => exportXLS()}>
-                      Export Excel
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button
-                  type="button"
-                  onClick={openAddDept}
-                  className="h-8 rounded-lg px-4 text-xs font-medium bg-[#2563eb] text-white hover:bg-[#1e40af]"
-                >
-                  <Plus className="mr-1.5 h-4 w-4" /> Add Department
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 px-3 py-2">
-              <Input
-                value={msQuery}
-                onChange={(e) => {
-                  setMsQuery(e.target.value);
-                  setMsPage(0);
-                }}
-                placeholder="Search by Department Head or filter by Department"
-                className="h-8 w-72 text-xs"
-              />
-              <Select
-                value={msDeptFilter}
-                onValueChange={(v) => {
-                  setMsDeptFilter(v);
-                  setMsPage(0);
-                }}
-              >
-                <SelectTrigger className="h-8 w-44 text-xs">
-                  <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {Array.from(
-                    new Set(departmentsData.map((d) => d.department)),
-                  ).map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Table className="text-sm">
-              <TableHeader>
-                <TableRow className="hover:bg-transparent border-b">
-                  <TableHead className="px-3 py-2 text-xs font-medium">
-                    Department
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-xs font-medium">
-                    Department Head
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-xs font-medium">
-                    Cost Center
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-center text-xs font-medium">
-                    Team Members
-                  </TableHead>
-                  <TableHead className="px-3 py-2 text-center text-xs font-medium">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(() => {
-                  const q = msQuery.toLowerCase().trim();
-                  const filtered = departmentsData.filter((d) => {
-                    const matchesHead = !q || d.head.toLowerCase().includes(q);
-                    const matchesDept =
-                      msDeptFilter === "all" || d.department === msDeptFilter;
-                    return matchesHead && matchesDept;
-                  });
-                  const total = filtered.length;
-                  const totalPages = Math.max(1, Math.ceil(total / msPageSize));
-                  const start = Math.min(
-                    msPage * msPageSize,
-                    Math.max(0, total - (total % msPageSize || msPageSize)),
-                  );
-                  const end = Math.min(start + msPageSize, total);
-                  return (
-                    <>
-                      {filtered.slice(start, end).map((d, i) => (
-                        <TableRow
-                          key={d.department + i}
-                          className="border-b last:border-0 hover:bg-transparent"
-                        >
-                          <TableCell className="px-3 py-2">
-                            {d.department}
-                          </TableCell>
-                          <TableCell className="px-3 py-2">{d.head}</TableCell>
-                          <TableCell className="px-3 py-2">
-                            {d.costCenter}
-                          </TableCell>
-                          <TableCell className="px-3 py-2 text-center">
-                            {d.members}
-                          </TableCell>
-                          <TableCell className="px-3 py-2 text-center">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  className="h-7 w-7 p-0"
-                                  aria-label={`Actions for ${d.department}`}
-                                >
-                                  <EllipsisVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-44">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditDept(
-                                      departmentsData.findIndex((x) => x === d),
-                                    )
-                                  }
-                                >
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setConfirmDeleteIndex(
-                                      departmentsData.findIndex((x) => x === d),
-                                    )
-                                  }
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <tr>
-                        <td colSpan={5} className="border-t px-2 py-2">
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                            <div className="inline-flex items-center gap-2">
-                              <span className="text-muted-foreground">
-                                Rows per page
-                              </span>
-                              <Select
-                                value={String(msPageSize)}
-                                onValueChange={(v) => {
-                                  setMsPageSize(parseInt(v, 10));
-                                  setMsPage(0);
-                                }}
-                              >
-                                <SelectTrigger className="h-7 w-20 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {[10, 25, 50, 100].map((n) => (
-                                    <SelectItem key={n} value={String(n)}>
-                                      {n}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="inline-flex items-center gap-1">
-                              <Button
-                                variant="outline"
-                                className="h-7 w-7 rounded-md p-0"
-                                onClick={() =>
-                                  setMsPage((p) => Math.max(0, p - 1))
-                                }
-                                disabled={msPage === 0}
-                                aria-label="Previous page"
-                              >
-                                <ChevronLeft className="h-4 w-4" />
-                              </Button>
-                              {Array.from({ length: totalPages }).map(
-                                (_, idx) => (
-                                  <Button
-                                    key={idx}
-                                    variant={
-                                      idx === msPage ? "default" : "outline"
-                                    }
-                                    className="h-7 min-w-7 rounded-md px-2 text-xs"
-                                    onClick={() => setMsPage(idx)}
-                                  >
-                                    {idx + 1}
-                                  </Button>
-                                ),
-                              )}
-                              <Button
-                                variant="outline"
-                                className="h-7 w-7 rounded-md p-0"
-                                onClick={() =>
-                                  setMsPage((p) =>
-                                    Math.min(totalPages - 1, p + 1),
-                                  )
-                                }
-                                disabled={msPage >= totalPages - 1}
-                                aria-label="Next page"
-                              >
-                                <ChevronRight className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    </>
-                  );
-                })()}
-              </TableBody>
-            </Table>
-          </div>
-          <AlertDialog
-            open={confirmDeleteIndex !== null}
-            onOpenChange={(o) => !o && setConfirmDeleteIndex(null)}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete department?</AlertDialogTitle>
-              </AlertDialogHeader>
-              <div className="text-sm text-muted-foreground">
-                This action cannot be undone. This will permanently remove the
-                department.
-              </div>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={deleteDept}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      ) : mode === "list" ? (
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Input
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-              placeholder="Search by name or position"
-              className="h-8 w-56 text-xs"
-            />
-            <Select value={orgDept} onValueChange={setOrgDept}>
-              <SelectTrigger className="h-8 w-44 text-xs">
-                <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {(() => {
-                  const set = new Set<string>();
-                  const walk = (n: OrgNode) => {
-                    set.add(n.department.toLowerCase());
-                    n.children?.forEach(walk);
-                  };
-                  ORG_TREE.forEach(walk);
-                  return Array.from(set).map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d.charAt(0).toUpperCase() + d.slice(1)}
-                    </SelectItem>
-                  ));
-                })()}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="overflow-hidden rounded-lg border">
-            {(() => {
-              const rows = ORG_TREE.flatMap((node) => renderRows(node, 0));
-              const pageSize = 10;
-              const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-              const start = Math.min(
-                orgPage * pageSize,
-                Math.max(0, rows.length - (rows.length % pageSize || pageSize)),
-              );
-              const end = Math.min(start + pageSize, rows.length);
+    <div className="relative min-h-[1000px] w-full overflow-x-auto">
+      <div className="relative min-w-[2000px] mx-auto">
+        {/* SVG for connections */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+        {visibleNodes.map(node => {
+          if (node.parentId && expandedNodes.has(node.parentId)) {
+            const parent = mockOrgChart.find(p => p.id === node.parentId);
+            if (parent) {
               return (
-                <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="h-9 px-3 text-xs">Name</TableHead>
-                        <TableHead className="h-9 px-3 text-xs">
-                          Position
-                        </TableHead>
-                        <TableHead className="h-9 px-3 text-xs">
-                          Department
-                        </TableHead>
-                        <TableHead className="h-9 px-3 text-xs">
-                          Reporting Staff
-                        </TableHead>
-                        <TableHead className="h-9 px-3 text-center text-xs">
-                          Actions
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>{rows.slice(start, end)}</TableBody>
-                  </Table>
-                  <div className="flex items-center justify-end gap-2 border-t px-2 py-2 text-xs">
-                    <span className="text-muted-foreground">
-                      {start + 1}-{end} of {rows.length}
-                    </span>
-                    <Button
-                      variant="outline"
-                      className="h-7 w-7 rounded-md p-0"
-                      onClick={() => setOrgPage((p) => Math.max(0, p - 1))}
-                      disabled={orgPage === 0}
-                      aria-label="Previous page"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-7 w-7 rounded-md p-0"
-                      onClick={() =>
-                        setOrgPage((p) => Math.min(totalPages - 1, p + 1))
-                      }
-                      disabled={orgPage >= totalPages - 1}
-                      aria-label="Next page"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </>
+                <path
+                  key={`${parent.id}-${node.id}`}
+                  d={getConnectionPath(parent, node)}
+                  stroke="#d1d5db"
+                  strokeWidth="2"
+                  fill="none"
+                />
               );
-            })()}
-          </div>
-        </div>
-      ) : (
-        <div
-          className="mt-2 origin-top"
-          style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
-        >
-          {ORG_TREE.map((node) => (
-            <div key={node.name} className="mb-6 flex justify-center">
-              <ChartNode node={node} />
-            </div>
-          ))}
-        </div>
-      )}
+            }
+          }
+          return null;
+        })}
+      </svg>
 
-      <Dialog open={deptDialogOpen} onOpenChange={setDeptDialogOpen}>
-        <DialogContent className="font-poppins">
-          <DialogHeader>
-            <DialogTitle className="font-poppins text-base font-semibold">
-              {editingDeptIndex === null ? "Add Department" : "Edit Department"}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-3 py-2">
-            <div className="grid gap-1.5">
-              <Label htmlFor="dept-name" className="font-poppins text-sm">
-                Department Name
-              </Label>
-              <Input
-                id="dept-name"
-                placeholder="Enter department name"
-                value={deptName}
-                onChange={(e) => setDeptName(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label className="font-poppins text-sm">Department Head</Label>
-              <Input
-                id="dept-head"
-                placeholder="Enter department head"
-                value={deptHead}
-                onChange={(e) => setDeptHead(e.target.value)}
-                className="h-9"
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="dept-cost" className="font-poppins text-sm">
-                Cost Center
-              </Label>
-              <Input
-                id="dept-cost"
-                placeholder="e.g., 1001"
-                value={deptCostCenter}
-                onChange={(e) => setDeptCostCenter(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-md bg-white text-[#111827] border border-[#d1d5db]"
-              onClick={() => setDeptDialogOpen(false)}
+        {/* Employee nodes */}
+        <div className="relative" style={{ zIndex: 2 }}>
+        {visibleNodes.map(node => {
+          const position = getNodePosition(node);
+          const hasChildren = node.children.length > 0;
+          const isExpanded = expandedNodes.has(node.id);
+          
+          return (
+            <div
+              key={node.id}
+              className="absolute"
+              style={{
+                left: `${position.x}px`,
+                top: `${position.y}px`,
+                transform: 'translateX(-50%)',
+              }}
             >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="rounded-md bg-[#2563eb] text-white hover:bg-[#1e40af]"
-              onClick={saveDept}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {reportTarget && (
-        <AddReportModalTemplate
-          open={addReportOpen}
-          onOpenChange={setAddReportOpen}
-          managerName={reportTarget.name}
-          managerRole={reportTarget.role}
-          onAdd={() => {}}
-        />
-      )}
+              <Card className="w-60 bg-white shadow-lg border-0 rounded-xl hover:shadow-xl transition-shadow duration-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Avatar className="h-10 w-10 ring-2 ring-blue-100">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+                        {node.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-900 truncate">
+                        {node.name}
+                      </h4>
+                      <p className="text-xs text-gray-600 truncate">
+                        {node.title}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <Badge 
+                    variant="secondary" 
+                    className={`text-xs ${getDepartmentColor(node.department)}`}
+                  >
+                    {node.department}
+                  </Badge>
+                  
+                  {hasChildren && (
+                    <div className="mt-3 flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        {node.directReports} direct reports
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleNode(node.id)}
+                        className="h-6 w-6 p-0 hover:bg-gray-100"
+                      >
+                        {isExpanded ? (
+                          <Minus className="h-3 w-3" />
+                        ) : (
+                          <Plus className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })}
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function Index() {
+  const [activeTab, setActiveTab] = useState("profiles");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
+  const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false);
+  const [expandedOrgNodes, setExpandedOrgNodes] = useState<Set<string>>(new Set());
+  const [orgChartViewMode, setOrgChartViewMode] = useState<"table" | "card" | "chart">("chart");
+  const [showManageDepartmentModal, setShowManageDepartmentModal] = useState(false);
+  const [showOrgChartModal, setShowOrgChartModal] = useState(false);
+  
   const { toast } = useToast();
-  const [search, setSearch] = useState("");
-  const [position, setPosition] = useState<string>("all");
-  const [status, setStatus] = useState<string>("all");
-  const [view, setView] = useState<"table" | "card">("table");
-  const [tab, setTab] = useState<string>("records");
+  const navigate = useNavigate();
 
-  // Role-based permissions (admin | hr | employee)
-  const currentRole: "admin" | "hr" | "employee" = "admin";
-
-  // Document Center state
-  const [dcSearch, setDcSearch] = useState("");
-  const [dcDept, setDcDept] = useState<string>("all");
-  const [dcDocType, setDcDocType] = useState<string>("all");
-  const [dcDateFilter, setDcDateFilter] = useState<string>("any");
-  const [dcCategory2, setDcCategory2] = useState<string>("employee");
-  const [sortKey, setSortKey] = useState<keyof Doc>("uploadDate");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const [dcUploadOpen, setDcUploadOpen] = useState(false);
-  const [dcFile, setDcFile] = useState<File | null>(null);
-  const [dcTitle, setDcTitle] = useState("");
-  const [dcCategory, setDcCategory] = useState<string>("employee");
-  const [dcDeptSel, setDcDeptSel] = useState<string>("all");
-  const [dcExpiry, setDcExpiry] = useState<string>("");
-
-  const totalActive = EMPLOYEES.filter((e) => e.status === "Active").length;
-  const onLeave = EMPLOYEES.filter((e) => e.status === "On Leave").length;
-  const newHiresThisMonth = 0;
-  const pendingOffboarding = 0;
-
-  const filtered = useMemo(() => {
-    return EMPLOYEES.filter((e) => {
-      const matchesSearch =
-        !search.trim() ||
-        [e.firstName, e.lastName, e.email, e.role, e.status, e.department, e.id]
-          .join(" ")
-          .toLowerCase()
-          .includes(search.toLowerCase());
-      const matchesPos =
-        position === "all" || e.role.toLowerCase().includes(position);
-      const matchesStatus =
-        status === "all" || e.status.toLowerCase() === status;
-      return matchesSearch && matchesPos && matchesStatus;
+  // Filter employees based on search and filters
+  const filteredEmployees = useMemo(() => {
+    return mockEmployees.filter((employee) => {
+      const matchesSearch = 
+        employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.department.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesDepartment = selectedDepartment === "all" || employee.department === selectedDepartment;
+      const matchesStatus = selectedStatus === "all" || employee.status === selectedStatus;
+      
+      return matchesSearch && matchesDepartment && matchesStatus;
     });
-  }, [search, position, status]);
+  }, [searchQuery, selectedDepartment, selectedStatus]);
 
-  // Pagination for Employee Records table
-  const pageSize = 10;
-  const [page, setPage] = useState(0);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const start = Math.min(
-    page * pageSize,
-    Math.max(0, filtered.length - (filtered.length % pageSize || pageSize)),
-  );
-  const end = Math.min(start + pageSize, filtered.length);
-  const pageItems = filtered.slice(start, end);
-  useEffect(() => {
-    setPage(0);
-  }, [search, position, status]);
+  // Calculate metrics according to FR-RM-001
+  const metrics = useMemo(() => {
+    const totalActiveEmployees = mockEmployees.filter(emp => emp.status === "Active").length;
+    const newHiresThisMonth = mockEmployees.filter(emp => {
+      const joinDate = new Date(emp.joinedDate);
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+      return joinDate.getMonth() === currentMonth && joinDate.getFullYear() === currentYear;
+    }).length;
+    const pendingOffboarding = mockEmployees.filter(emp => emp.status === "Offboarding").length;
+    const onLeave = mockEmployees.filter(emp => emp.status === "On Leave").length;
 
-  // Document Center data and helpers
-  type Doc = {
-    id: string;
-    title: string;
-    employeeName: string;
-    department: string;
-    type: string;
-    category: string;
-    uploadDate: string; // DD/MM/YYYY
-    expirationDate?: string; // DD/MM/YYYY
-    uploadedBy: string;
-  };
-
-  const docColumns: { key: keyof Doc; label: string }[] = [
-    { key: "title", label: "Document Title" },
-    { key: "department", label: "Department" },
-    { key: "type", label: "File Type" },
-    { key: "uploadDate", label: "Upload Date" },
-    { key: "expirationDate", label: "Expiration Date" },
-    { key: "uploadedBy", label: "Uploaded By" },
-  ];
-
-  const docCategories = [
-    { value: "employee", label: "Employee Records" },
-    { value: "policies", label: "Policies" },
-    { value: "compliance", label: "Compliance" },
-    { value: "training", label: "Training" },
-    { value: "forms", label: "Forms & Templates" },
-  ];
-
-  const docTypes = ["PDF", "Word", "Excel", "Image"];
-  const departments = Array.from(new Set(EMPLOYEES.map((e) => e.department)));
-
-  // Derive simple skills from role keywords (for table tag display)
-  function getSkills(e: Employee): string[] {
-    const s = new Set<string>();
-    const r = e.role.toLowerCase();
-    if (r.includes("engineer")) s.add("Engineering");
-    if (r.includes("software")) s.add("Software");
-    if (r.includes("devops")) s.add("DevOps");
-    if (r.includes("qa")) s.add("QA");
-    if (r.includes("product")) s.add("Product");
-    if (r.includes("design")) s.add("Design");
-    if (r.includes("analyst")) s.add("Analysis");
-    if (r.includes("hr")) s.add("HR");
-    return Array.from(s);
-  }
-
-  // Skill profile used by AI search and recommendations
-  const SKILL_ALIASES: Record<string, string> = {
-    js: "javascript",
-    ts: "typescript",
-    reactjs: "react",
-    nodejs: "node",
-    k8s: "kubernetes",
-    kubernetes: "kubernetes",
-    docker: "docker",
-    terraform: "terraform",
-    cicd: "ci/cd",
-    ci: "ci/cd",
-    aws: "aws",
-    "amazon web services": "aws",
-    sql: "sql",
-    python: "python",
-    tableau: "tableau",
-    excel: "excel",
-    analytics: "analytics",
-    qa: "qa",
-    testing: "testing",
-    automation: "automation",
-    cypress: "cypress",
-    selenium: "selenium",
-    ux: "ux",
-    ui: "ui",
-    figma: "figma",
-    design: "design",
-    product: "product",
-    agile: "agile",
-    scrum: "scrum",
-    roadmap: "roadmap",
-    jira: "jira",
-    hr: "hr",
-    recruiting: "recruiting",
-    onboarding: "onboarding",
-    payroll: "payroll",
-    devops: "devops",
-    "power bi": "power bi",
-  };
-
-  function normalizeSkill(token: string): string | null {
-    const t = token.trim().toLowerCase();
-    if (!t) return null;
-    if (SKILL_ALIASES[t]) return SKILL_ALIASES[t];
-    return t;
-  }
-
-  function getSkillProfile(e: Employee): string[] {
-    const r = e.role.toLowerCase();
-    const skills = new Set<string>();
-    // Base by department
-    if (e.department.toLowerCase() === "engineering") {
-      [
-        "javascript",
-        "typescript",
-        "react",
-        "node",
-        "aws",
-        "docker",
-        "kubernetes",
-        "ci/cd",
-      ].forEach((k) => skills.add(k));
-    }
-    // Role specific
-    if (r.includes("devops")) {
-      [
-        "aws",
-        "docker",
-        "kubernetes",
-        "terraform",
-        "ci/cd",
-        "linux",
-        "cloud",
-      ].forEach((k) => skills.add(k));
-    }
-    if (r.includes("qa")) {
-      [
-        "qa",
-        "testing",
-        "automation",
-        "cypress",
-        "selenium",
-        "javascript",
-        "typescript",
-      ].forEach((k) => skills.add(k));
-    }
-    if (r.includes("software") || r.includes("engineer")) {
-      ["javascript", "typescript", "react", "node", "testing", "git"].forEach(
-        (k) => skills.add(k),
-      );
-    }
-    if (r.includes("designer")) {
-      ["design", "figma", "ux", "ui", "prototyping", "research"].forEach((k) =>
-        skills.add(k),
-      );
-    }
-    if (r.includes("analyst")) {
-      ["sql", "python", "tableau", "excel", "analytics"].forEach((k) =>
-        skills.add(k),
-      );
-    }
-    if (r.includes("product")) {
-      ["product", "agile", "scrum", "roadmap", "jira"].forEach((k) =>
-        skills.add(k),
-      );
-    }
-    if (r.includes("hr")) {
-      ["hr", "recruiting", "onboarding", "payroll"].forEach((k) =>
-        skills.add(k),
-      );
-    }
-    return Array.from(skills);
-  }
-
-  function scoreCandidate(
-    e: Employee,
-    querySkills: string[],
-  ): { score: number; matches: string[] } {
-    const prof = new Set(getSkillProfile(e).map((s) => s.toLowerCase()));
-    const matches = querySkills.filter((q) => prof.has(q));
-    if (!matches.length) return { score: 0, matches: [] };
-    const years = getYearsExperience(e);
-    const seniority = /senior|lead|manager/i.test(e.role) ? 1 : 0;
-    const score = matches.length * 3 + years * 0.2 + seniority * 1.5;
-    return { score, matches };
-  }
-  function getYearsExperience(e: Employee): number {
-    const parts = e.joiningDate.split("-"); // MM-DD-YYYY
-    if (parts.length !== 3) return 0;
-    const [mm, dd, yyyy] = parts.map((p) => parseInt(p, 10));
-    const start = new Date(yyyy, (mm || 1) - 1, dd || 1).getTime();
-    const now = Date.now();
-    const years = (now - start) / (1000 * 60 * 60 * 24 * 365.25);
-    return Math.max(0, Math.floor(years));
-  }
-
-  // AI Assistant state and simple HR-aware responder
-  type ChatMessage = { role: "user" | "assistant"; content: string };
-  const [aiOpen, setAiOpen] = useState(false);
-  const [aiInput, setAiInput] = useState("");
-  const [aiMsgs, setAiMsgs] = useState<ChatMessage[]>([
-    {
-      role: "assistant",
-      content:
-        "Hi! Try: who knows AWS, React, or TypeScript? I'll list matches with years and recommend top candidates.",
-    },
-  ]);
-  const [openAddSingle, setOpenAddSingle] = useState(false);
-
-  // Helpers for AI assistant
-  function parseMDY(s: string): Date | null {
-    const m = s.match(/(\d{1,2})[-\/](\d{1,2})[-\/]?(\d{2,4})/);
-    if (!m) return null;
-    const mm = parseInt(m[1], 10);
-    const dd = parseInt(m[2], 10);
-    const yy = parseInt(m[3].length === 2 ? `20${m[3]}` : m[3], 10);
-    const d = new Date(yy, (mm || 1) - 1, dd || 1);
-    return isNaN(d.getTime()) ? null : d;
-  }
-  function findEmployeeRef(text: string): Employee | null {
-    const byId = text.match(/emp\d{3}/i);
-    if (byId) {
-      const id = byId[0].toUpperCase();
-      const e = EMPLOYEES.find((x) => x.id.toUpperCase() === id);
-      if (e) return e;
-    }
-    const byEmail = EMPLOYEES.find((e) => text.includes(e.email.toLowerCase()));
-    if (byEmail) return byEmail;
-    const byFull = EMPLOYEES.find((e) =>
-      text.includes(`${e.firstName} ${e.lastName}`.toLowerCase()),
-    );
-    if (byFull) return byFull;
-    // fallback: unique first or last name
-    const byFirst = EMPLOYEES.filter((e) =>
-      text.includes(e.firstName.toLowerCase()),
-    );
-    if (byFirst.length === 1) return byFirst[0];
-    const byLast = EMPLOYEES.filter((e) =>
-      text.includes(e.lastName.toLowerCase()),
-    );
-    if (byLast.length === 1) return byLast[0];
-    return null;
-  }
-  function fmtEmp(e: Employee): string {
-    const parts = [
-      `${e.firstName} ${e.lastName} (${e.id})`,
-      e.role,
-      e.department,
-      `Status: ${e.status}`,
-      `Joined: ${e.joiningDate}`,
-      `Email: ${e.email}`,
-      e.contactNumber ? `Phone: ${e.contactNumber}` : null,
-      e.location ? `Location: ${e.location}` : null,
-    ].filter(Boolean) as string[];
-    return parts.join(" • ");
-  }
-  function listByDept(d: string): string {
-    const list = EMPLOYEES.filter(
-      (e) => e.department.toLowerCase() === d.toLowerCase(),
-    );
-    if (!list.length) return `No employees found in ${d}.`;
-    return `${d} (${list.length}):\n${list.map((e) => `• ${e.firstName} ${e.lastName} – ${e.role} (${e.status})`).join("\n")}`;
-  }
-
-  function getAssistantReply(q: string): string {
-    const raw = q.trim();
-    const text = raw.toLowerCase();
-    if (!text) return "Please type a question.";
-
-    // Skills-based search and recommendations
-    const tokens = text
-      .split(/[^a-zA-Z0-9+/]+/)
-      .map(normalizeSkill)
-      .filter(Boolean) as string[];
-    const skills = Array.from(new Set(tokens)).filter(
-      (t) => Object.values(SKILL_ALIASES).includes(t) || t.length > 2,
-    );
-    if (skills.length) {
-      const scored = EMPLOYEES.map((e) => ({ e, ...scoreCandidate(e, skills) }))
-        .filter((x) => x.score > 0)
-        .sort(
-          (a, b) =>
-            b.score - a.score ||
-            getYearsExperience(b.e) - getYearsExperience(a.e),
-        );
-      if (!scored.length)
-        return `No employees found for skills: ${skills.join(", ")}.`;
-      const top = scored.slice(0, 3);
-      const topLines = top.map(
-        (x, i) =>
-          `${i + 1}. ${x.e.firstName} ${x.e.lastName} – ${x.e.role}, ${x.e.department} • ${getYearsExperience(x.e)} yrs • Matches: ${x.matches.join(", ")}`,
-      );
-      const allLines = scored.map(
-        (x) =>
-          `• ${x.e.firstName} ${x.e.lastName} – ${x.e.role}, ${x.e.department} ��� ${getYearsExperience(x.e)} yrs • Matches: ${x.matches.join(", ")}`,
-      );
-      return `Top candidates:\n${topLines.join("\n")}\n\nAll matches:\n${allLines.join("\n")}`;
-    }
-
-    // Direct employee record lookups
-    const ref = findEmployeeRef(text);
-    if (ref) {
-      if (/(email|mail)/.test(text))
-        return `${ref.firstName} ${ref.lastName} email: ${ref.email}`;
-      if (/(phone|contact|number)/.test(text))
-        return `${ref.firstName} ${ref.lastName} phone: ${ref.contactNumber ?? "—"}`;
-      if (/location/.test(text))
-        return `${ref.firstName} ${ref.lastName} location: ${ref.location ?? "—"}`;
-      if (/(status|role|position|department)/.test(text)) return fmtEmp(ref);
-      return fmtEmp(ref);
-    }
-
-    // Counts and summaries
-    if (/how many|count|total/.test(text)) {
-      const statusMatch = /(active|on leave)/.exec(text);
-      if (statusMatch) {
-        const s = statusMatch[1].toLowerCase().includes("active")
-          ? "Active"
-          : "On Leave";
-        const c = EMPLOYEES.filter((e) => e.status === s).length;
-        return `${s} employees: ${c}`;
-      }
-      const dept = departments.find((d) => text.includes(d.toLowerCase()));
-      if (dept) {
-        const c = EMPLOYEES.filter(
-          (e) => e.department.toLowerCase() === dept.toLowerCase(),
-        ).length;
-        return `${dept} headcount: ${c}`;
-      }
-      return `Total employees: ${EMPLOYEES.length}`;
-    }
-
-    // Department lists
-    const deptMatch = departments.find((d) => text.includes(d.toLowerCase()));
-    if (deptMatch && /(list|show|who|employees|team)/.test(text)) {
-      return listByDept(deptMatch);
-    }
-
-    // Join date filters
-    if (/joined/.test(text) || /hired/.test(text)) {
-      const after =
-        /(after|since)\s+(\d{4}|\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/.exec(text);
-      const before = /(before)\s+(\d{4}|\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})/.exec(
-        text,
-      );
-      let list = EMPLOYEES.slice();
-      if (after) {
-        const d = parseMDY(after[2]) || new Date(parseInt(after[2], 10), 0, 1);
-        list = list.filter(
-          (e) =>
-            (parseMDY(e.joiningDate)?.getTime() ?? 0) >= (d?.getTime() ?? 0),
-        );
-      }
-      if (before) {
-        const d =
-          parseMDY(before[2]) || new Date(parseInt(before[2], 10), 11, 31);
-        list = list.filter(
-          (e) =>
-            (parseMDY(e.joiningDate)?.getTime() ?? 0) <= (d?.getTime() ?? 0),
-        );
-      }
-      if (!list.length) return "No matches for that date filter.";
-      return list
-        .map(
-          (e) =>
-            `• ${e.firstName} ${e.lastName} – ${e.role}, ${e.department} • Joined ${e.joiningDate}`,
-        )
-        .join("\n");
-    }
-
-    // Status filters
-    if (/active/.test(text) || /on leave/.test(text)) {
-      const s = /on leave/.test(text) ? "On Leave" : "Active";
-      const list = EMPLOYEES.filter((e) => e.status === s);
-      return `${s} (${list.length}):\n${list.map((e) => `• ${e.firstName} ${e.lastName} – ${e.role}, ${e.department}`).join("\n")}`;
-    }
-
-    // Fallback quick answers retained
-    if (text.includes("active")) return `Active employees: ${totalActive}`;
-    if (text.includes("on leave") || text.includes("leave"))
-      return `On leave: ${onLeave}`;
-    if (text.includes("new hire") || text.includes("new hires"))
-      return `New hires this month: ${newHiresThisMonth}`;
-    if (text.includes("offboard") || text.includes("exit"))
-      return `Pending offboarding: ${pendingOffboarding}`;
-    const byName = EMPLOYEES.find((e) =>
-      `${e.firstName} ${e.lastName}`.toLowerCase().includes(text),
-    );
-    if (byName)
-      return `${byName.firstName} ${byName.lastName} – ${byName.role}, ${byName.department}. Status: ${byName.status}.`;
-    return "Try asking things like: 'EMP001 details', 'list Engineering employees', 'email of Sarah Mitchell', 'who joined after 2022', or 'count active employees'.";
-  }
-
-  function sendAi() {
-    const query = aiInput;
-    if (!query.trim()) return;
-    const reply = getAssistantReply(query);
-    setAiMsgs((m) => [
-      ...m,
-      { role: "user", content: query },
-      { role: "assistant", content: reply },
-    ]);
-    setAiInput("");
-  }
-
-  const DOCS: Doc[] = [
-    {
-      id: "d1",
-      title: "Employment Contract - Sarah Mitchell",
-      employeeName: "Sarah Mitchell",
-      department: "Engineering",
-      type: "PDF",
-      category: "employee",
-      uploadDate: "10/01/2023",
-      expirationDate: "10/01/2026",
-      uploadedBy: "HR Admin",
-    },
-    {
-      id: "d2",
-      title: "Data Privacy Policy",
-      employeeName: "—",
-      department: "Legal",
-      type: "PDF",
-      category: "policies",
-      uploadDate: "22/08/2023",
-      expirationDate: undefined,
-      uploadedBy: "HR Admin",
-    },
-    {
-      id: "d3",
-      title: "Compliance Report Q4 2023",
-      employeeName: "—",
-      department: "Finance",
-      type: "Excel",
-      category: "compliance",
-      uploadDate: "28/12/2023",
-      expirationDate: "28/12/2024",
-      uploadedBy: "Finance Ops",
-    },
-    {
-      id: "d4",
-      title: "Safety Training Certificate - Marcus Thompson",
-      employeeName: "Marcus Thompson",
-      department: "Engineering",
-      type: "PDF",
-      category: "training",
-      uploadDate: "20/11/2023",
-      expirationDate: "20/11/2025",
-      uploadedBy: "Training Team",
-    },
-    {
-      id: "d5",
-      title: "Performance Review Template 2024",
-      employeeName: "—",
-      department: "Human Resources",
-      type: "Word",
-      category: "forms",
-      uploadDate: "08/01/2024",
-      expirationDate: undefined,
-      uploadedBy: "HR Admin",
-    },
-    {
-      id: "d6",
-      title: "Benefits Enrollment Form",
-      employeeName: "Elena Garcia",
-      department: "Human Resources",
-      type: "PDF",
-      category: "employee",
-      uploadDate: "05/01/2024",
-      expirationDate: "05/01/2025",
-      uploadedBy: "HR Admin",
-    },
-  ];
-
-  function parseDMY(input?: string): Date | null {
-    if (!input) return null;
-    const parts = input.split("/");
-    if (parts.length !== 3) return null;
-    const [dd, mm, yyyy] = parts.map((p) => parseInt(p, 10));
-    if (!dd || !mm || !yyyy) return null;
-    return new Date(yyyy, mm - 1, dd);
-  }
-
-  function daysUntil(dateStr?: string): number | null {
-    const d = parseDMY(dateStr);
-    if (!d) return null;
-    const now = new Date();
-    const diff = d.getTime() - now.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  }
-
-  const [docs, setDocs] = useState<Doc[]>(DOCS);
-  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
-  const [dcSelecting, setDcSelecting] = useState(false);
-
-  const filteredDocs = useMemo(() => {
-    return docs.filter((d) => {
-      const matchesSearch =
-        !dcSearch.trim() ||
-        d.title.toLowerCase().includes(dcSearch.toLowerCase());
-      const matchesDept =
-        dcDept === "all" || d.department.toLowerCase() === dcDept;
-      const matchesType =
-        dcDocType === "all" || d.type.toLowerCase() === dcDocType;
-      const matchesCat = dcCategory2 === d.category;
-      const days = dcDateFilter === "any" ? null : daysUntil(d.uploadDate);
-      const matchesDate =
-        dcDateFilter === "any" ||
-        (typeof days === "number" &&
-          days >= 0 &&
-          days <= parseInt(dcDateFilter, 10));
-      return (
-        matchesSearch && matchesDept && matchesType && matchesCat && matchesDate
-      );
-    });
-  }, [docs, dcSearch, dcDept, dcDocType, dcCategory2, dcDateFilter]);
-
-  const sortedDocs = useMemo(() => {
-    const arr = [...filteredDocs];
-    arr.sort((a, b) => {
-      const dir = sortDir === "asc" ? 1 : -1;
-      if (sortKey === "uploadDate" || sortKey === "expirationDate") {
-        const da = parseDMY(a[sortKey] as string | undefined)?.getTime() ?? 0;
-        const db = parseDMY(b[sortKey] as string | undefined)?.getTime() ?? 0;
-        return (da - db) * dir;
-      }
-      const va = String(a[sortKey] ?? "").toLowerCase();
-      const vb = String(b[sortKey] ?? "").toLowerCase();
-      return va < vb ? -1 * dir : va > vb ? 1 * dir : 0;
-    });
-    return arr;
-  }, [filteredDocs, sortKey, sortDir]);
-
-  function download(filename: string, content: string, mime: string) {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
-  function exportDocsCSV() {
-    const headers = docColumns.map((c) => c.label);
-    const selected = selectedDocIds;
-    const rows = selected.size
-      ? sortedDocs.filter((d) => selected.has(d.id))
-      : sortedDocs;
-    const csv = [
-      headers.join(","),
-      ...rows.map((d) =>
-        docColumns
-          .map((c) => {
-            const v = (d as any)[c.key];
-            const s = v == null ? "" : String(v);
-            return '"' + s.replace(/"/g, '""') + '"';
-          })
-          .join(","),
-      ),
-    ].join("\n");
-    download("documents.csv", csv, "text/csv;charset=utf-8;");
-    toast({ title: "Exported CSV", description: `${rows.length} document(s)` });
-  }
-
-  function formatDMY(d: Date): string {
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  }
-
-  function getFileType(f: File | null): string {
-    if (!f) return "";
-    const t = f.type.toLowerCase();
-    const name = f.name.toLowerCase();
-    if (t.includes("pdf") || name.endsWith(".pdf")) return "PDF";
-    if (t.includes("word") || name.endsWith(".doc") || name.endsWith(".docx"))
-      return "Word";
-    if (
-      t.includes("excel") ||
-      t.includes("spreadsheet") ||
-      name.endsWith(".xls") ||
-      name.endsWith(".xlsx")
-    )
-      return "Excel";
-    if (
-      t.startsWith("image/") ||
-      [".png", ".jpg", ".jpeg", ".gif", ".webp"].some((x) => name.endsWith(x))
-    )
-      return "Image";
-    return t.split("/")[1]?.toUpperCase() || "Unknown";
-  }
-
-  function submitUpload() {
-    if (!dcFile || !dcTitle.trim()) {
-      return toast({
-        title: "Missing info",
-        description: "Please select a file and enter a title.",
-      });
-    }
-    const uploader =
-      currentRole === "hr"
-        ? "HR Admin"
-        : currentRole === "admin"
-          ? "Admin"
-          : "Employee";
-    const newDoc: Doc = {
-      id: `d${Date.now()}`,
-      title: dcTitle.trim(),
-      employeeName: "—",
-      department:
-        dcDeptSel === "all"
-          ? "General"
-          : departments.find((d) => d.toLowerCase() === dcDeptSel) || dcDeptSel,
-      type: getFileType(dcFile),
-      category: dcCategory,
-      uploadDate: formatDMY(new Date()),
-      expirationDate: dcExpiry || undefined,
-      uploadedBy: uploader,
+    return {
+      totalActiveEmployees,
+      newHiresThisMonth,
+      pendingOffboarding,
+      onLeave,
     };
-    setDocs((arr) => [newDoc, ...arr]);
-    setDcUploadOpen(false);
-    setDcFile(null);
-    setDcTitle("");
-    setDcCategory("employee");
-    setDcDeptSel("all");
-    setDcExpiry("");
-    toast({ title: "Uploaded", description: newDoc.title });
-  }
+  }, []);
 
-  function handleSort(key: keyof Doc) {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  }
+  
+  // Document Center states
+  const [documentSearchQuery, setDocumentSearchQuery] = useState("");
+  const [documentCategory, setDocumentCategory] = useState("all");
+  const [documentDepartment, setDocumentDepartment] = useState("all");
+  const [documentFileType, setDocumentFileType] = useState("all");
+  const [documentUploadDate, setDocumentUploadDate] = useState("all");
+  const [documentSortField, setDocumentSortField] = useState("uploadDate");
+  const [documentSortDirection, setDocumentSortDirection] = useState<"asc" | "desc">("desc");
+  
+  // Employee Profile Management states
+  const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
+  const [selectedEmployeeProfile, setSelectedEmployeeProfile] = useState<any>(null);
+  const [employeeProfileTab, setEmployeeProfileTab] = useState("personal");
 
-  useEffect(() => {
-    if (tab !== "docs") return;
-    const soon = docs.filter((d) => {
-      const n = daysUntil(d.expirationDate);
-      return typeof n === "number" && n <= 30 && n >= 0;
-    });
-    if (soon.length) {
+  const handleEmployeeAction = (employeeId: string, action: string) => {
+    if (action === "view") {
+      const employee = mockEmployees.find(emp => emp.id === employeeId);
+      setSelectedEmployeeProfile(employee);
+      setShowEmployeeProfile(true);
+      setEmployeeProfileTab("personal");
+    } else if (action === "documents") {
+      setActiveTab("documents");
       toast({
-        title: "Expiring documents",
-        description: `${soon.length} document(s) will expire within 30 days.`,
+        title: "Navigate to Documents",
+        description: `Viewing documents for employee ${employeeId}`,
+      });
+    } else if (action === "edit") {
+      toast({
+        title: "Edit Employee",
+        description: `Edit functionality for employee ${employeeId}`,
+      });
+    } else if (action === "delete") {
+      toast({
+        title: "Delete Employee",
+        description: `Delete functionality for employee ${employeeId}`,
       });
     }
-  }, [tab, docs]);
+  };
+
+  const toggleOrgNode = (nodeId: string) => {
+    const newExpanded = new Set(expandedOrgNodes);
+    if (newExpanded.has(nodeId)) {
+      newExpanded.delete(nodeId);
+    } else {
+      newExpanded.add(nodeId);
+    }
+    setExpandedOrgNodes(newExpanded);
+  };
+
+  // Document filtering and sorting logic
+  const filteredDocuments = useMemo(() => {
+    let filtered = mockDocuments.filter((doc) => {
+      // Search filter
+      if (documentSearchQuery) {
+        const searchLower = documentSearchQuery.toLowerCase();
+        const matchesSearch = 
+          doc.title.toLowerCase().includes(searchLower) ||
+          doc.category.toLowerCase().includes(searchLower) ||
+          doc.department.toLowerCase().includes(searchLower) ||
+          doc.uploadedBy.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+
+      // Category filter
+      if (documentCategory !== "all" && doc.category !== documentCategory) {
+        return false;
+      }
+
+      // Department filter
+      if (documentDepartment !== "all" && doc.department !== documentDepartment) {
+        return false;
+      }
+
+      // File type filter
+      if (documentFileType !== "all" && doc.fileType !== documentFileType) {
+        return false;
+      }
+
+      // Upload date filter
+      if (documentUploadDate !== "all") {
+        const uploadDate = new Date(doc.uploadDate);
+        const now = new Date();
+        const daysDiff = Math.floor((now.getTime() - uploadDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (documentUploadDate) {
+          case "30":
+            if (daysDiff > 30) return false;
+            break;
+          case "90":
+            if (daysDiff > 90) return false;
+            break;
+          case "365":
+            if (daysDiff > 365) return false;
+            break;
+        }
+      }
+
+      return true;
+    });
+
+    // Sort documents
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (documentSortField) {
+        case "title":
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case "category":
+          aValue = a.category.toLowerCase();
+          bValue = b.category.toLowerCase();
+          break;
+        case "department":
+          aValue = a.department.toLowerCase();
+          bValue = b.department.toLowerCase();
+          break;
+        case "fileType":
+          aValue = a.fileType.toLowerCase();
+          bValue = b.fileType.toLowerCase();
+          break;
+        case "uploadDate":
+          aValue = new Date(a.uploadDate).getTime();
+          bValue = new Date(b.uploadDate).getTime();
+          break;
+        case "expirationDate":
+          aValue = a.expirationDate ? new Date(a.expirationDate).getTime() : 0;
+          bValue = b.expirationDate ? new Date(b.expirationDate).getTime() : 0;
+          break;
+        case "uploadedBy":
+          aValue = a.uploadedBy.toLowerCase();
+          bValue = b.uploadedBy.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (documentSortDirection === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filtered;
+  }, [documentSearchQuery, documentCategory, documentDepartment, documentFileType, documentUploadDate, documentSortField, documentSortDirection]);
+
+  const handleDocumentSort = (field: string) => {
+    if (documentSortField === field) {
+      setDocumentSortDirection(documentSortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setDocumentSortField(field);
+      setDocumentSortDirection("asc");
+    }
+  };
+
+  const isDocumentExpired = (expirationDate: string | null) => {
+    if (!expirationDate) return false;
+    return new Date(expirationDate) < new Date();
+  };
+
+  const MetricCard = ({ title, value, icon: Icon, trend, color }: {
+    title: string;
+    value: number;
+    icon: any;
+    trend?: string;
+    color?: string;
+  }) => (
+    <Card className="p-6 bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
+          <p className="text-3xl font-bold text-gray-900">{value}</p>
+          {trend && (
+            <p className="text-xs text-gray-500 mt-2">{trend}</p>
+          )}
+        </div>
+        <div className={cn("p-4 rounded-xl shadow-lg", color || "bg-gradient-to-br from-blue-500 to-blue-600")}>
+          <Icon className={cn("h-7 w-7", color ? "text-white" : "text-white")} />
+        </div>
+      </div>
+    </Card>
+  );
+
+  const EmployeeCard = ({ employee }: { employee: any }) => (
+    <Card className="p-6 bg-white/70 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-4">
+          <Avatar className="h-14 w-14 ring-2 ring-blue-100">
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+              {employee.firstName[0]}{employee.lastName[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <h3 className="font-semibold text-xl text-gray-900 mb-1">
+              {employee.firstName} {employee.lastName}
+            </h3>
+            <p className="text-sm text-gray-600 mb-3">{employee.position}</p>
+            <div className="flex items-center space-x-2 mb-3">
+              <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                {employee.department}
+              </Badge>
+              <Badge 
+                variant={employee.status === "Active" ? "default" : "secondary"}
+                className={cn(
+                  "text-xs",
+                  employee.status === "Active" 
+                    ? "bg-green-100 text-green-700 border-green-200" 
+                    : "bg-gray-100 text-gray-700 border-gray-200"
+                )}
+              >
+                {employee.status}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {employee.skills.slice(0, 3).map((skill: string) => (
+                <Badge key={skill} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                  {skill}
+                </Badge>
+              ))}
+              {employee.skills.length > 3 && (
+                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                  +{employee.skills.length - 3} more
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center space-x-4 text-xs text-gray-500">
+              <div className="flex items-center space-x-1">
+                <Mail className="h-3 w-3" />
+                <span>{employee.email}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="hover:bg-gray-100 rounded-lg">
+              <EllipsisVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
+            <DropdownMenuItem onClick={() => handleEmployeeAction(employee.id, "view")} className="rounded-lg">
+              <Eye className="h-4 w-4 mr-2" />
+              View Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleEmployeeAction(employee.id, "edit")} className="rounded-lg">
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => handleEmployeeAction(employee.id, "delete")}
+              className="text-red-600 rounded-lg"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </Card>
+  );
+
+  const OrgNodeCard = ({ node, level = 0 }: { node: any; level?: number }) => {
+    const isExpanded = expandedOrgNodes.has(node.id);
+    const hasReports = node.directReports > 0;
+
+    return (
+      <Card className={cn("p-4", level > 0 && "ml-8")}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            {hasReports && (
+                              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleOrgNode(node.id)}
+                className="h-6 w-6 p-0"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+                              </Button>
+            )}
+            <Avatar className="h-10 w-10">
+              <AvatarFallback>
+                {node.name.split(' ').map((n: string) => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="font-semibold">{node.name}</h3>
+              <p className="text-sm text-muted-foreground">{node.title}</p>
+              <div className="flex items-center space-x-2 mt-1">
+                <Badge variant="secondary" className="text-xs">
+                  {node.department}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {node.directReports} direct reports
+                </Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+                              </Button>
+            <Button variant="outline" size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Report
+            </Button>
+            {level === 0 && (
+              <Button variant="outline" size="sm">
+                <Eye className="h-4 w-4 mr-2" />
+                View Chart Mode
+              </Button>
+            )}
+                            </div>
+                          </div>
+      </Card>
+    );
+  };
+
+  const DocumentCard = ({ document }: { document: any }) => (
+    <Card className="p-4">
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-3">
+          <div className="p-2 bg-red-100 rounded-lg">
+            <FileText className="h-5 w-5 text-red-600" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-semibold">{document.title}</h3>
+            <p className="text-sm text-muted-foreground mt-1">{document.description}</p>
+            <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
+              <div className="flex items-center space-x-1">
+                <Building2 className="h-3 w-3" />
+                <span>{document.department}</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Calendar className="h-3 w-3" />
+                <span>{document.uploadedDate}</span>
+        </div>
+          </div>
+            <div className="flex items-center space-x-2 mt-3">
+              <Badge 
+                variant={
+                  document.status === "Active" ? "default" : 
+                  document.status === "Pending Review" ? "secondary" : 
+                  "outline"
+                }
+                className="text-xs"
+              >
+                {document.status}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {document.category}
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {document.fileType} • {document.fileSize}
+              </Badge>
+              {document.complianceRequired && (
+                <Badge variant="secondary" className="text-xs">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Compliance Required
+                </Badge>
+              )}
+                  </div>
+            <div className="flex flex-wrap gap-1 mt-2">
+              {document.tags.map((tag: string) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+          </div>
+        </div>
+            </div>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm">
+            <Eye className="h-4 w-4 mr-2" />
+            View
+          </Button>
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Download
+          </Button>
+          <Button variant="outline" size="sm">
+            <Share className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-4">
-          <h2 className="text-2xl font-bold text-foreground">
-            Employee Records
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Centralized employee records management and organizational tools
-          </p>
-        </header>
-
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
-          {/* Mobile dropdown */}
-          <div className="sm:hidden">
-            <Select value={tab} onValueChange={setTab}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select section" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="records">Employee Records</SelectItem>
-                <SelectItem value="org">Organizational Chart</SelectItem>
-                <SelectItem value="docs">Document Center</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Desktop single-row tabs */}
-          <TabsList className="hidden sm:block w-full">
-            <div className="flex flex-nowrap items-center gap-2">
-              <TabsTrigger
-                value="records"
-                className={cn(
-                  "flex-1 rounded-[12px] px-4 py-2 text-sm transition-colors",
-                  "data-[state=active]:bg-[#3B82F6] data-[state=active]:text-white data-[state=active]:font-bold",
-                  "data-[state=inactive]:bg-transparent data-[state=inactive]:text-black data-[state=inactive]:font-medium data-[state=inactive]:hover:bg-[#E0F2FE]",
-                )}
-              >
-                Employee Records
-              </TabsTrigger>
-              <TabsTrigger
-                value="org"
-                className={cn(
-                  "flex-1 rounded-[12px] px-4 py-2 text-sm transition-colors",
-                  "data-[state=active]:bg-[#3B82F6] data-[state=active]:text-white data-[state=active]:font-bold",
-                  "data-[state=inactive]:bg-transparent data-[state=inactive]:text-black data-[state=inactive]:font-medium data-[state=inactive]:hover:bg-[#E0F2FE]",
-                )}
-              >
-                Organizational Chart
-              </TabsTrigger>
-              <TabsTrigger
-                value="docs"
-                className={cn(
-                  "flex-1 rounded-[12px] px-4 py-2 text-sm transition-colors",
-                  "data-[state=active]:bg-[#3B82F6] data-[state=active]:text-white data-[state=active]:font-bold",
-                  "data-[state=inactive]:bg-transparent data-[state=inactive]:text-black data-[state=inactive]:font-medium data-[state=inactive]:hover:bg-[#E0F2FE]",
-                )}
-              >
-                Document Center
-              </TabsTrigger>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-poppins">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 shadow-sm">
+        <div className="flex items-center justify-between px-8 py-6">
+          <div className="flex items-center space-x-6">
+            <div className="p-3 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg">
+              <Users className="h-7 w-7 text-white" />
             </div>
-          </TabsList>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                Employee Records
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                {activeTab === "profiles" && "Centralized employee records management and organizational tools"}
+                {activeTab === "orgchart" && "Organizational Chart • Dynamic organizational structure and hierarchy"}
+                {activeTab === "documents" && "Document Center • Secure document storage and retrieval system"}
+                {activeTab === "settings" && "System Configuration • Configure system settings and preferences"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button 
+              onClick={() => setShowAddEmployeeModal(true)}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Employee
+            </Button>
+            <Button variant="outline" size="sm" className="border-gray-300 hover:bg-gray-50">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </div>
+      </header>
 
-          <TabsContent value="records" className="mt-5">
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <MetricCard
-                label="Total Active Employee"
-                value={totalActive}
-                icon={<User className="h-5 w-5" />}
-              />
-              <MetricCard
-                label="New Hires This Month"
-                value={newHiresThisMonth}
-                icon={<Plus className="h-5 w-5" />}
-              />
-              <MetricCard
-                label="Pending Offboarding"
-                value={pendingOffboarding}
-                icon={<ArrowLeftRight className="h-5 w-5" />}
-              />
-              <MetricCard
-                label="On Leave"
-                value={onLeave}
-                icon={<CalendarDays className="h-5 w-5" />}
-              />
-            </section>
+      {/* Main Content */}
+      <main className="p-8">
+        {!showEmployeeProfile ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <div className="mb-8">
+              <TabsList className="flex w-full bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-sm rounded-xl p-2 min-h-[70px]">
+                <TabsTrigger 
+                  value="profiles" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-3 px-4 text-base font-medium flex-shrink-0 min-w-[160px]"
+                >
+                  <Users className="h-5 w-5" />
+                  <span>Employee Profiles</span>
+                  {activeTab === "profiles" && (
+                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="orgchart" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-3 px-4 text-base font-medium flex-shrink-0 min-w-[180px]"
+                >
+                  <BarChart3 className="h-5 w-5" />
+                  <span>Organizational Chart</span>
+                  {activeTab === "orgchart" && (
+                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="documents" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-3 px-4 text-base font-medium flex-shrink-0 min-w-[160px]"
+                >
+                  <FileText className="h-5 w-5" />
+                  <span>Document Center</span>
+                  {activeTab === "documents" && (
+                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="settings" 
+                  className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-3 px-4 text-base font-medium flex-shrink-0 min-w-[180px]"
+                >
+                  <Settings className="h-5 w-5" />
+                  <span>System Configuration</span>
+                  {activeTab === "settings" && (
+                    <div className="w-2 h-2 bg-white rounded-full ml-auto"></div>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <section className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex w-full flex-1 items-center gap-2">
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by name, email, position, status"
-                  className="h-8 text-xs max-w-md"
+            {/* Employee Profiles Tab */}
+            <TabsContent value="profiles" className="space-y-6">
+              {/* Metrics Cards - FR-RM-001 Requirements */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <MetricCard
+                  title="Total Active Employees"
+                  value={metrics.totalActiveEmployees}
+                  icon={Users}
+                  trend="Currently active"
+                  color="bg-blue-100"
                 />
-                <Select value={position} onValueChange={setPosition}>
-                  <SelectTrigger className="h-8 w-32 text-xs">
-                    <SelectValue placeholder="All Positions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Positions</SelectItem>
-                    <SelectItem value="engineer">Engineer</SelectItem>
-                    <SelectItem value="designer">Designer</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="h-8 w-28 text-xs">
-                    <SelectValue placeholder="All Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="on leave">On Leave</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
+                <MetricCard
+                  title="New Hires This Month"
+                  value={metrics.newHiresThisMonth}
+                  icon={TrendingUp}
+                  trend="Joined this month"
+                  color="bg-green-100"
+                />
+                <MetricCard
+                  title="Pending Offboarding"
+                  value={metrics.pendingOffboarding}
+                  icon={AlertCircle}
+                  trend="Awaiting completion"
+                  color="bg-orange-100"
+                />
+                <MetricCard
+                  title="On Leave"
+                  value={metrics.onLeave}
+                  icon={Clock}
+                  trend="Currently on leave"
+                  color="bg-purple-100"
+                />
               </div>
 
-              <div className="flex items-center gap-3 self-end">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <input
-                      id="bulk-emp-upload"
-                      type="file"
-                      accept="text/csv,.csv"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files?.length)
-                          toast({
-                            title: "Bulk upload started",
-                            description: `${e.target.files[0].name}`,
-                          });
-                      }}
-                    />
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          className="h-8 rounded-md px-3 text-xs bg-[#2563eb] text-white hover:bg-[#1d4ed8]"
-                        >
-                          <Plus className="mr-1.5 h-4 w-4" /> Add Employee
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem
-                          onClick={() => setOpenAddSingle(true)}
-                        >
-                          Manual add
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            document.getElementById("bulk-emp-upload")?.click()
-                          }
-                        >
-                          Bulk Upload
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <Dialog open={openAddSingle} onOpenChange={setOpenAddSingle}>
-                    <DialogContent className="rounded-2xl p-6 shadow-xl">
-                      <DialogHeader>
-                        <DialogTitle>Add Employee</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid gap-3 text-sm">
-                        <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-3">
-                          <div className="grid gap-1.5">
-                            <Label
-                              className="text-xs font-semibold"
-                              htmlFor="emp-first"
-                            >
-                              First Name
-                            </Label>
-                            <Input
-                              id="emp-first"
-                              placeholder="First name"
-                              required
-                            />
-                          </div>
-                          <div className="grid gap-1.5">
-                            <Label
-                              className="text-xs font-semibold"
-                              htmlFor="emp-last"
-                            >
-                              Last Name
-                            </Label>
-                            <Input
-                              id="emp-last"
-                              placeholder="Last name"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="grid gap-1.5">
-                          <Label
-                            className="text-xs font-semibold"
-                            htmlFor="emp-email"
-                          >
-                            Email
-                          </Label>
-                          <Input
-                            id="emp-email"
-                            type="email"
-                            placeholder="email@company.com"
-                            required
-                          />
-                        </div>
-                        <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-3">
-                          <div className="grid gap-1.5">
-                            <Label
-                              className="text-xs font-semibold"
-                              htmlFor="emp-role"
-                            >
-                              Role / Position
-                            </Label>
-                            <Input
-                              id="emp-role"
-                              placeholder="e.g., Software Engineer"
-                            />
-                          </div>
-                          <div className="grid gap-1.5">
-                            <Label className="text-xs font-semibold">
-                              Department
-                            </Label>
-                            <Select>
-                              <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Select department" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {departments.map((d) => (
-                                  <SelectItem key={d} value={d.toLowerCase()}>
-                                    {d}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-3">
-                          <div className="grid gap-1.5">
-                            <Label className="text-xs font-semibold">
-                              Status
-                            </Label>
-                            <Select>
-                              <SelectTrigger className="h-9">
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="on leave">
-                                  On Leave
-                                </SelectItem>
-                                <SelectItem value="inactive">
-                                  Inactive
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="grid gap-1.5">
-                            <Label
-                              className="text-xs font-semibold"
-                              htmlFor="emp-join"
-                            >
-                              Joined Date
-                            </Label>
-                            <Input id="emp-join" type="date" />
-                          </div>
-                        </div>
+              {/* Search and Filters */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input
+                          placeholder="Search by name, email…"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-12 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
+                        />
                       </div>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            className="rounded-md border px-4"
-                          >
-                            Cancel
-                          </Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                          <Button
-                            className="rounded-md bg-[#2563eb] px-4 text-white hover:bg-[#1d4ed8]"
-                            onClick={() =>
-                              toast({
-                                title: "Employee added",
-                                description: "New employee has been added.",
-                              })
-                            }
-                          >
-                            Save
-                          </Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                    </div>
+                    <div className="flex gap-4">
+                      <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                        <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                          <SelectValue placeholder="All Departments" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-lg border-0 shadow-xl">
+                          <SelectItem value="all">All Departments</SelectItem>
+                          <SelectItem value="Engineering">Engineering</SelectItem>
+                          <SelectItem value="Product">Product</SelectItem>
+                          <SelectItem value="Finance">Finance</SelectItem>
+                          <SelectItem value="Marketing">Marketing</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <SelectTrigger className="w-36 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                          <SelectValue placeholder="All Status" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-lg border-0 shadow-xl">
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Employee Count and View Toggle */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  {filteredEmployees.length} employees found
+                </p>
+                <div className="flex items-center space-x-2">
                   <Button
-                    type="button"
-                    variant="outline"
-                    className="h-8 rounded-md px-3 text-xs bg-white text-[#374151] border border-[#d1d5db] hover:bg-gray-50"
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className={viewMode === "list" ? "bg-blue-600 hover:bg-blue-700" : "border-gray-300 hover:bg-gray-50"}
                   >
-                    <Download className="mr-1.5 h-4 w-4" /> Export
+                    <TableIcon className="h-4 w-4 mr-2" />
+                    Table View
+                  </Button>
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className={viewMode === "grid" ? "bg-blue-600 hover:bg-blue-700" : "border-gray-300 hover:bg-gray-50"}
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    Card View
                   </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-8 w-8 rounded-md p-0",
-                    view === "table"
-                      ? "bg-brand text-brand-foreground border-transparent"
-                      : "",
-                  )}
-                  onClick={() => setView("table")}
-                >
-                  <TableIcon className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "h-8 w-8 rounded-md p-0",
-                    view === "card"
-                      ? "bg-brand text-brand-foreground border-transparent"
-                      : "",
-                  )}
-                  onClick={() => setView("card")}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
               </div>
-            </section>
 
-            {view === "table" ? (
-              <section className="mt-4">
-                <div className="overflow-hidden rounded-lg border">
-                  <Table className="text-xs leading-tight">
+              {/* Employee List/Grid */}
+              {viewMode === "list" ? (
+                <Card>
+                  <Table>
                     <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Employee ID
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Name
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Position
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Department
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Skills
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Status
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-xs font-semibold uppercase leading-tight">
-                          Joined Date
-                        </TableHead>
-                        <TableHead className="px-2 py-1 text-center text-xs font-semibold uppercase leading-tight">
-                          Action
-                        </TableHead>
+                      <TableRow>
+                        <TableHead>EMPLOYEE ID</TableHead>
+                        <TableHead>EMPLOYEE NAME</TableHead>
+                        <TableHead>POSITION</TableHead>
+                        <TableHead>DEPARTMENT</TableHead>
+                        <TableHead>SKILLS</TableHead>
+                        <TableHead>STATUS</TableHead>
+                        <TableHead>JOINED DATE</TableHead>
+                        <TableHead>ACTION</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {pageItems.map((e, idx) => (
-                        <TableRow
-                          key={e.id}
-                          className={cn("hover:bg-transparent")}
-                        >
-                          <TableCell className="px-2 py-1 text-xs leading-tight font-medium text-foreground/90">
-                            {e.id}
+                      {filteredEmployees.map((employee) => (
+                        <TableRow key={employee.id}>
+                          <TableCell className="font-mono text-sm">
+                            {employee.employeeId}
                           </TableCell>
-                          <TableCell className="px-2 py-1 text-xs leading-tight">
-                            <div className="flex items-center gap-2">
-                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1E4DD8] text-white font-semibold text-[10px]">
-                                {(e.firstName?.[0] || "").toUpperCase()}
-                                {(e.lastName?.[0] || "").toUpperCase()}
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
+                                  {employee.firstName[0]}{employee.lastName[0]}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">
+                                  {employee.firstName} {employee.lastName}
+                                </p>
                               </div>
-                              <span className="text-xs font-semibold text-foreground">
-                                {e.firstName} {e.lastName}
-                              </span>
                             </div>
                           </TableCell>
-                          <TableCell className="px-2 py-1 text-xs leading-tight">
-                            {e.role}
+                          <TableCell>{employee.position}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {employee.department}
+                            </Badge>
                           </TableCell>
-                          <TableCell className="px-2 py-1 text-xs leading-tight">
-                            {e.department}
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {employee.skills.slice(0, 2).map((skill) => (
+                                <Badge key={skill} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {employee.skills.length > 2 && (
+                                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                                  +{employee.skills.length - 2}
+                                </Badge>
+                              )}
+                            </div>
                           </TableCell>
-                          <TableCell className="px-2 py-1 text-xs leading-tight">
-                            {(() => {
-                              const skills = getSkills(e);
-                              if (!skills.length)
-                                return (
-                                  <span className="text-muted-foreground">
-                                    ��
-                                  </span>
-                                );
-                              const shown = skills.slice(0, 2);
-                              const display = `${shown.join(", ")}${skills.length > 2 ? ", ..." : ""}`;
-                              const full = `${skills.join(", ")}`;
-                              const years = getYearsExperience(e);
-                              return (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span className="cursor-help">
-                                        {display}
-                                      </span>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <div className="max-w-xs text-xs">
-                                        <div className="font-semibold">
-                                          Skills
-                                        </div>
-                                        <div className="text-foreground/80">
-                                          {full}
-                                        </div>
-                                        <div className="mt-1 text-foreground/80">
-                                          Experience: {years}{" "}
-                                          {years === 1 ? "year" : "years"}
-                                        </div>
-                                      </div>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              );
-                            })()}
+                          <TableCell>
+                            <Badge 
+                              variant={employee.status === "Active" ? "default" : "secondary"}
+                              className={cn(
+                                "text-xs",
+                                employee.status === "Active" 
+                                  ? "bg-green-100 text-green-700 border-green-200" 
+                                  : employee.status === "On Leave"
+                                  ? "bg-purple-100 text-purple-700 border-purple-200"
+                                  : employee.status === "Offboarding"
+                                  ? "bg-orange-100 text-orange-700 border-orange-200"
+                                  : "bg-gray-100 text-gray-700 border-gray-200"
+                              )}
+                            >
+                              {employee.status}
+                            </Badge>
                           </TableCell>
-                          <TableCell className="px-2 py-1 text-xs leading-tight">
-                            {e.status}
+                          <TableCell>
+                            {new Date(employee.joinedDate).toLocaleDateString()}
                           </TableCell>
-                          <TableCell className="px-2 py-1 text-xs leading-tight">
-                            {e.joiningDate}
-                          </TableCell>
-                          <TableCell className="px-2 py-1 text-center text-xs leading-tight">
-                            <RowActions employee={e} />
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                                  <EllipsisVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
+                                <DropdownMenuItem onClick={() => handleEmployeeAction(employee.id, "view")} className="rounded-lg">
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Manage Profile
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEmployeeAction(employee.id, "documents")} className="rounded-lg">
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Documents
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                  <div className="flex items-center justify-end gap-2 border-t px-2 py-2 text-xs">
-                    <span className="text-muted-foreground">
-                      {start + 1}-{end} of {filtered.length}
-                    </span>
-                    <Button
-                      variant="outline"
-                      className="h-7 w-7 rounded-md p-0"
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                      disabled={page === 0}
-                      aria-label="Previous page"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="h-7 w-7 rounded-md p-0"
-                      onClick={() =>
-                        setPage((p) => Math.min(totalPages - 1, p + 1))
-                      }
-                      disabled={page >= totalPages - 1}
-                      aria-label="Next page"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </section>
-            ) : (
-              <section className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((e) => (
-                  <div
-                    key={e.id}
-                    className="bg-white rounded-[12px] py-4 px-5"
-                    style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E4DD8] text-white font-semibold text-[14px]">
-                          {(e.firstName?.[0] || "").toUpperCase()}
-                          {(e.lastName?.[0] || "").toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-[16px] font-bold text-[#1A1A1A]">
-                              {e.firstName} {e.lastName}
-                            </div>
-                            <span className="rounded-[8px] bg-[#F0F4FF] px-2 py-[2px] text-[#3B5BDB] text-[12px] font-medium">
-                              {e.status}
-                            </span>
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            ID: {e.id}
-                          </div>
-                        </div>
-                      </div>
-                      <RowActions employee={e} />
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <div className="text-[11px] text-muted-foreground">
-                          Position
-                        </div>
-                        <div className="truncate text-foreground">{e.role}</div>
-                      </div>
-                      <div>
-                        <div className="text-[11px] text-muted-foreground">
-                          Department
-                        </div>
-                        <div className="truncate text-foreground">
-                          {e.department}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[11px] text-muted-foreground">
-                          Joined Date
-                        </div>
-                        <div className="text-foreground">{e.joiningDate}</div>
-                      </div>
-                      <div className="col-span-2">
-                        {(() => {
-                          const skills = getSkills(e);
-                          if (!skills.length)
-                            return (
-                              <span className="text-xs text-muted-foreground">
-                                Skills: —
-                              </span>
-                            );
-                          const shown = skills.slice(0, 3);
-                          return (
-                            <div className="flex flex-wrap items-center gap-1 text-[11px]">
-                              <span className="text-muted-foreground">
-                                Skills:
-                              </span>
-                              {shown.map((s) => (
-                                <Badge
-                                  key={s}
-                                  variant="secondary"
-                                  className="px-1.5 py-0 text-[10px]"
-                                >
-                                  {s}
-                                </Badge>
-                              ))}
-                              {skills.length > 3 && (
-                                <span className="text-muted-foreground">
-                                  +{skills.length - 3} more
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
-          </TabsContent>
-
-          <TabsContent value="org" className="mt-6">
-            <OrgListView />
-          </TabsContent>
-          <TabsContent value="docs" className="mt-6">
-            <div className="rounded-2xl border bg-card p-4 shadow-sm">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={dcSearch}
-                    onChange={(e) => setDcSearch(e.target.value)}
-                    placeholder="Search documents..."
-                    className="h-8 w-56 text-xs"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => setDcUploadOpen(true)}
-                    className="h-8 gap-1 px-2 text-xs bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    <Upload className="h-4 w-4" />{" "}
-                    {currentRole === "employee"
-                      ? "Upload My Document"
-                      : "Upload Document"}
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      if (!dcSelecting) {
-                        setDcSelecting(true);
-                      } else {
-                        exportDocsCSV();
-                        setDcSelecting(false);
-                        setSelectedDocIds(new Set());
-                      }
-                    }}
-                    variant="outline"
-                    className="h-8 rounded-md px-3 text-xs bg-white text-[#374151] border border-[#d1d5db] hover:bg-gray-50 gap-1"
-                  >
-                    <Download className="mr-1.5 h-4 w-4" /> Export
-                  </Button>
-                </div>
-              </div>
-
-              <Dialog open={dcUploadOpen} onOpenChange={setDcUploadOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Upload Document</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-3 py-2">
-                    <div className="grid gap-1.5">
-                      <Label className="text-xs font-semibold">
-                        Select File
-                      </Label>
-                      <Input
-                        type="file"
-                        accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*"
-                        onChange={(e) => setDcFile(e.target.files?.[0] || null)}
-                      />
-                    </div>
-                    <div className="grid gap-1.5">
-                      <Label className="text-xs font-semibold">
-                        Document Title
-                      </Label>
-                      <Input
-                        value={dcTitle}
-                        onChange={(e) => setDcTitle(e.target.value)}
-                        placeholder="Descriptive title"
-                      />
-                    </div>
-                    <div className="grid gap-1.5 sm:grid-cols-2 sm:gap-3">
-                      <div className="grid gap-1.5">
-                        <Label className="text-xs font-semibold">
-                          Document Category
-                        </Label>
-                        <Select
-                          value={dcCategory}
-                          onValueChange={setDcCategory}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {docCategories.map((c) => (
-                              <SelectItem key={c.value} value={c.value}>
-                                {c.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-1.5">
-                        <Label className="text-xs font-semibold">
-                          Department
-                        </Label>
-                        <Select value={dcDeptSel} onValueChange={setDcDeptSel}>
-                          <SelectTrigger className="h-9">
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Departments</SelectItem>
-                            {departments.map((d) => (
-                              <SelectItem key={d} value={d.toLowerCase()}>
-                                {d}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="grid gap-1.5 sm:max-w-xs">
-                      <Label className="text-xs font-semibold">
-                        Expiration Date (optional)
-                      </Label>
-                      <Input
-                        type="date"
-                        value={dcExpiry}
-                        onChange={(e) => setDcExpiry(e.target.value)}
-                        placeholder="dd/mm/yyyy"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setDcUploadOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button onClick={submitUpload}>Save</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-1 text-xs">
-                  {docCategories.map((c) => (
-                    <Button
-                      key={c.value}
-                      variant={dcCategory2 === c.value ? "default" : "outline"}
-                      className={cn(
-                        "h-7 px-2 text-xs",
-                        dcCategory2 === c.value
-                          ? "bg-brand text-brand-foreground border-transparent"
-                          : "",
-                      )}
-                      onClick={() => setDcCategory2(c.value)}
-                    >
-                      {c.label}
-                    </Button>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredEmployees.map((employee) => (
+                    <EmployeeCard key={employee.id} employee={employee} />
                   ))}
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Select value={dcDept} onValueChange={setDcDept}>
-                    <SelectTrigger className="h-8 w-40 text-xs">
-                      <SelectValue placeholder="All Departments" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Departments</SelectItem>
-                      {departments.map((d) => (
-                        <SelectItem key={d} value={d.toLowerCase()}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={dcDocType} onValueChange={setDcDocType}>
-                    <SelectTrigger className="h-8 w-36 text-xs">
-                      <SelectValue placeholder="All Types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {docTypes.map((t) => (
-                        <SelectItem key={t} value={t.toLowerCase()}>
-                          {t}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={dcDateFilter} onValueChange={setDcDateFilter}>
-                    <SelectTrigger className="h-8 w-36 text-xs">
-                      <SelectValue placeholder="Date" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="any">Any Date</SelectItem>
-                      <SelectItem value="30">Last 30 days</SelectItem>
-                      <SelectItem value="90">Last 90 days</SelectItem>
-                      <SelectItem value="365">Last year</SelectItem>
-                    </SelectContent>
-                  </Select>
+              )}
+
+              {/* Pagination Controls - FR-RM-001 Requirements */}
+              <div className="flex items-center justify-between mt-8">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredEmployees.length} of {mockEmployees.length} employees
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" disabled>
+                    Previous
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      1
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      2
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      3
+                    </Button>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Organizational Chart Tab - FR-RM-003 Requirements */}
+            <TabsContent value="orgchart" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Organizational Chart</h2>
+                  <p className="text-gray-600">Dynamic organizational structure and hierarchy management - {mockOrgChart.length} total employees</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Chart
+                  </Button>
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Employee
+                  </Button>
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-lg border">
-                <Table className="text-xs leading-tight">
-                  <TableHeader>
-                    <TableRow>
-                      {dcSelecting && (
-                        <TableHead className="w-8 px-2 py-1">
-                          {(() => {
-                            const ids = sortedDocs.map((d) => d.id);
-                            const all =
-                              ids.length > 0 &&
-                              ids.every((id) => selectedDocIds.has(id));
-                            const some = ids.some((id) =>
-                              selectedDocIds.has(id),
-                            );
-                            const checked: boolean | "indeterminate" = all
-                              ? true
-                              : some
-                                ? "indeterminate"
-                                : false;
-                            return (
-                              <Checkbox
-                                aria-label="Select all documents"
-                                checked={checked}
-                                onCheckedChange={(v) => {
-                                  setSelectedDocIds((prev) => {
-                                    const next = new Set(prev);
-                                    if (v === true) {
-                                      ids.forEach((id) => next.add(id));
-                                    } else {
-                                      ids.forEach((id) => next.delete(id));
-                                    }
-                                    return next;
-                                  });
-                                }}
-                              />
-                            );
-                          })()}
-                        </TableHead>
-                      )}
-                      {docColumns.map((col) => (
-                        <TableHead
-                          key={col.key as string}
-                          className="px-2 py-1 text-xs font-semibold uppercase leading-tight"
-                        >
-                          <button
-                            className="inline-flex items-center gap-1"
-                            onClick={() => handleSort(col.key)}
-                          >
-                            <span>{col.label}</span>
-                            <ArrowUpDown className="h-3.5 w-3.5 opacity-60" />
-                          </button>
-                        </TableHead>
-                      ))}
-                      <TableHead className="px-2 py-1 text-right text-xs font-semibold uppercase leading-tight">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sortedDocs.map((d) => (
-                      <TableRow key={d.id} className="hover:bg-transparent">
-                        {dcSelecting && (
-                          <TableCell className="px-2 py-1">
-                            <Checkbox
-                              aria-label={`Select ${d.title}`}
-                              checked={selectedDocIds.has(d.id)}
-                              onCheckedChange={(v) => {
-                                setSelectedDocIds((prev) => {
-                                  const next = new Set(prev);
-                                  if (v === true) next.add(d.id);
-                                  else next.delete(d.id);
-                                  return next;
-                                });
-                              }}
-                            />
+              {/* Search and Filter - FR-RM-003 Requirements */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input
+                          placeholder="Search by name or position"
+                          className="pl-12 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+                    <Select>
+                      <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                        <SelectValue placeholder="All Departments" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-lg border-0 shadow-xl">
+                        <SelectItem value="all">All Departments</SelectItem>
+                        <SelectItem value="Executive">Executive</SelectItem>
+                        <SelectItem value="Engineering">Engineering</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
+                        <SelectItem value="Human Resources">Human Resources</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons - FR-RM-003 Requirements */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowManageDepartmentModal(true)}
+                    className="border-gray-300 hover:bg-gray-50"
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Manage Department
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant={orgChartViewMode === "table" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOrgChartViewMode("table")}
+                    className={orgChartViewMode === "table" ? "bg-blue-600 hover:bg-blue-700" : "border-gray-300 hover:bg-gray-50"}
+                  >
+                    <TableIcon className="h-4 w-4 mr-2" />
+                    Table View
+                  </Button>
+                  <Button
+                    variant={orgChartViewMode === "card" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOrgChartViewMode("card")}
+                    className={orgChartViewMode === "card" ? "bg-blue-600 hover:bg-blue-700" : "border-gray-300 hover:bg-gray-50"}
+                  >
+                    <LayoutGrid className="h-4 w-4 mr-2" />
+                    Card View
+                  </Button>
+                  <Button
+                    variant={orgChartViewMode === "chart" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setOrgChartViewMode("chart")}
+                    className={orgChartViewMode === "chart" ? "bg-blue-600 hover:bg-blue-700" : "border-gray-300 hover:bg-gray-50"}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Chart View
+                  </Button>
+                  {orgChartViewMode === "card" && (
+                    <div className="flex items-center space-x-1 ml-4">
+                      <Button variant="outline" size="sm">
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Table View - FR-RM-003 Requirements */}
+              {orgChartViewMode === "table" && (
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>EMPLOYEE NAME</TableHead>
+                        <TableHead>POSITION</TableHead>
+                        <TableHead>DEPARTMENT</TableHead>
+                        <TableHead>REPORTING STAFF</TableHead>
+                        <TableHead>ACTION</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {mockOrgChart.map((node) => (
+                        <TableRow key={node.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
+                                  {node.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{node.name}</p>
+                              </div>
+                            </div>
                           </TableCell>
-                        )}
-                        <TableCell className="px-2 py-1 text-xs leading-tight">
-                          {d.title}
-                        </TableCell>
-                        <TableCell className="px-2 py-1 text-xs leading-tight">
-                          {d.department}
-                        </TableCell>
-                        <TableCell className="px-2 py-1 text-xs leading-tight">
-                          {d.type}
-                        </TableCell>
-                        <TableCell className="px-2 py-1 text-xs leading-tight">
-                          {d.uploadDate}
-                        </TableCell>
-                        <TableCell className="px-2 py-1 text-xs leading-tight">
-                          {d.expirationDate ?? "—"}
-                        </TableCell>
-                        <TableCell className="px-2 py-1 text-xs leading-tight">
-                          {d.uploadedBy}
-                        </TableCell>
-                        <TableCell className="px-2 py-1 text-right text-xs leading-tight">
-                          <div className="flex items-center justify-end">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                          <TableCell>{node.title}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {node.department}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium">{node.directReports}</span>
+                              {node.directReports > 0 && (
                                 <Button
                                   variant="ghost"
-                                  className="h-7 w-7 p-0"
-                                  aria-label={`Actions for ${d.title}`}
+                                  size="sm"
+                                  onClick={() => toggleOrgNode(node.id)}
+                                  className="h-6 w-6 p-0"
                                 >
+                                  {expandedOrgNodes.has(node.id) ? (
+                                    <Minus className="h-3 w-3" />
+                                  ) : (
+                                    <Plus className="h-3 w-3" />
+                                  )}
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
                                   <EllipsisVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-40">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    toast({
-                                      title: "View",
-                                      description: d.title,
-                                    })
-                                  }
+                              <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
+                                <DropdownMenuItem 
+                                  className="rounded-lg"
+                                  onClick={() => setOrgChartViewMode("chart")}
                                 >
-                                  View
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Chart
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    toast({
-                                      title: "Edit",
-                                      description: d.title,
-                                    })
-                                  }
-                                >
+                                <DropdownMenuItem className="rounded-lg">
+                                  <Pencil className="h-4 w-4 mr-2" />
                                   Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    toast({
-                                      title: "Delete",
-                                      description: d.title,
-                                    })
-                                  }
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
+
+              {/* Card View - FR-RM-003 Requirements */}
+              {orgChartViewMode === "card" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Card View</h3>
+                    <p className="text-sm text-gray-600">{mockOrgChart.length} employees</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {mockOrgChart.map((node) => (
+                      <Card key={node.id} className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-4">
+                              <Avatar className="h-12 w-12 ring-2 ring-blue-100">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+                                  {node.name.split(' ').map(n => n[0]).join('')}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <h3 className="font-semibold text-lg text-gray-900 mb-1">
+                                  {node.name}
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-2">{node.title}</p>
+                                <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  {node.department}
+                                </Badge>
+                                <div className="flex items-center space-x-2 mt-3">
+                                  <Users className="h-4 w-4 text-gray-400" />
+                                  <span className="text-sm text-gray-600">
+                                    {node.directReports} direct reports
+                                  </span>
+                                  {node.directReports > 0 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => toggleOrgNode(node.id)}
+                                      className="h-6 w-6 p-0"
+                                    >
+                                      {expandedOrgNodes.has(node.id) ? (
+                                        <Minus className="h-3 w-3" />
+                                      ) : (
+                                        <Plus className="h-3 w-3" />
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                                  <EllipsisVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
+                                <DropdownMenuItem 
+                                  className="rounded-lg"
+                                  onClick={() => setOrgChartViewMode("chart")}
                                 >
-                                  Delete
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View Chart
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="rounded-lg">
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Edit
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Chart View - FR-RM-003 Requirements */}
+              {orgChartViewMode === "chart" && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Organizational Chart</h3>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm text-gray-600">Zoom: 80%</span>
+                      <span className="text-sm text-gray-600">{mockOrgChart.length} employees</span>
+                    </div>
+                  </div>
+                  <div className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-8 overflow-auto">
+                    <OrgChartVisualization />
+                  </div>
+                </div>
+              )}
+
+              {/* Pagination Controls - FR-RM-003 Requirements */}
+              <div className="flex items-center justify-between mt-8">
+                <p className="text-sm text-gray-600">
+                  Showing {mockOrgChart.length} of {mockOrgChart.length} employees
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" disabled>
+                    Previous
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      1
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      2
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      3
+                    </Button>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Document Center Tab - FR-RM-004 Requirements */}
+            <TabsContent value="documents" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">Document Center</h2>
+                  <p className="text-gray-600">Centralized document management and retrieval system</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button 
+                    onClick={() => setShowUploadDocumentModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Document
+                  </Button>
+                </div>
+              </div>
+
+              {/* Search Bar - FR-RM-004 Requirements */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <Input
+                          placeholder="Search document..."
+                          value={documentSearchQuery}
+                          onChange={(e) => setDocumentSearchQuery(e.target.value)}
+                          className="pl-12 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Document Category Tabs - FR-RM-004 Requirements */}
+              <div className="flex items-center space-x-1 bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-sm rounded-xl p-2">
+                <Button
+                  variant={documentCategory === "all" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setDocumentCategory("all")}
+                  className={documentCategory === "all" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                >
+                  All Documents
+                </Button>
+                <Button
+                  variant={documentCategory === "Employee Records" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setDocumentCategory("Employee Records")}
+                  className={documentCategory === "Employee Records" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                >
+                  Employee Records
+                </Button>
+                <Button
+                  variant={documentCategory === "Policies" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setDocumentCategory("Policies")}
+                  className={documentCategory === "Policies" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                >
+                  Policies
+                </Button>
+                <Button
+                  variant={documentCategory === "Compliance" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setDocumentCategory("Compliance")}
+                  className={documentCategory === "Compliance" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                >
+                  Compliance
+                </Button>
+                <Button
+                  variant={documentCategory === "Training" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setDocumentCategory("Training")}
+                  className={documentCategory === "Training" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                >
+                  Training
+                </Button>
+                <Button
+                  variant={documentCategory === "Forms & Templates" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setDocumentCategory("Forms & Templates")}
+                  className={documentCategory === "Forms & Templates" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                >
+                  Forms & Templates
+                </Button>
+              </div>
+
+              {/* Filters - FR-RM-004 Requirements */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                <CardContent className="p-6">
+                  <div className="flex flex-col lg:flex-row gap-4">
+                    <Select value={documentDepartment} onValueChange={setDocumentDepartment}>
+                      <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                        <SelectValue placeholder="All Departments" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-lg border-0 shadow-xl">
+                        <SelectItem value="all">All Departments</SelectItem>
+                        <SelectItem value="Human Resources">Human Resources</SelectItem>
+                        <SelectItem value="Legal">Legal</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Operations">Operations</SelectItem>
+                        <SelectItem value="IT">IT</SelectItem>
+                        <SelectItem value="All Departments">All Departments</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={documentFileType} onValueChange={setDocumentFileType}>
+                      <SelectTrigger className="w-40 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                        <SelectValue placeholder="All File Types" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-lg border-0 shadow-xl">
+                        <SelectItem value="all">All File Types</SelectItem>
+                        <SelectItem value="PDF">PDF</SelectItem>
+                        <SelectItem value="DOCX">DOCX</SelectItem>
+                        <SelectItem value="XLSX">XLSX</SelectItem>
+                        <SelectItem value="PPTX">PPTX</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={documentUploadDate} onValueChange={setDocumentUploadDate}>
+                      <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
+                        <SelectValue placeholder="Any Date" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-lg border-0 shadow-xl">
+                        <SelectItem value="all">Any Date</SelectItem>
+                        <SelectItem value="30">Last 30 Days</SelectItem>
+                        <SelectItem value="90">Last 90 Days</SelectItem>
+                        <SelectItem value="365">Last Year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Document Table - FR-RM-004 Requirements */}
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("title")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Document Title</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("category")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Category</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("department")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Department</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("fileType")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>File Type</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("uploadDate")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Upload Date</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("expirationDate")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Expiration Date</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleDocumentSort("uploadedBy")}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Uploaded By</span>
+                          <ArrowUpDown className="h-4 w-4" />
+                        </div>
+                      </TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDocuments.map((doc) => (
+                      <TableRow key={doc.id}>
+                        <TableCell className="font-medium">{doc.title}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {doc.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{doc.department}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                            {doc.fileType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{new Date(doc.uploadDate).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {doc.expirationDate ? (
+                            <span className={isDocumentExpired(doc.expirationDate) ? "text-red-600 font-medium" : "text-gray-600"}>
+                              {new Date(doc.expirationDate).toLocaleDateString()}
+                              {isDocumentExpired(doc.expirationDate) && " (Expired)"}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">No expiration</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{doc.uploadedBy}</TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="hover:bg-gray-100">
+                                <EllipsisVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
+                              <DropdownMenuItem className="rounded-lg">
+                                <Eye className="h-4 w-4 mr-2" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="rounded-lg">
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="rounded-lg text-red-600">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+              </Card>
 
-        {/* Floating AI Assistant */}
-        <button
-          type="button"
-          aria-label="Open AI Assistant"
-          onClick={() => setAiOpen((v) => !v)}
-          className="fixed bottom-4 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-[#2563eb] text-white shadow-lg hover:bg-[#1d4ed8]"
-        >
-          <Bot className="h-6 w-6" />
-        </button>
-        {aiOpen && (
-          <div className="fixed bottom-20 right-4 z-50 w-80 overflow-hidden rounded-xl border bg-white shadow-xl font-poppins">
-            <div className="flex items-center justify-between border-b px-3 py-2">
-              <div className="text-sm font-semibold">AI Assistant</div>
-              <button
-                onClick={() => setAiOpen(false)}
-                aria-label="Close"
-                className="rounded p-1 hover:bg-accent"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="max-h-72 space-y-2 overflow-auto px-3 py-2 text-sm">
-              {aiMsgs.map((m, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex",
-                    m.role === "user" ? "justify-end" : "justify-start",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "rounded-md px-2 py-1.5",
-                      m.role === "user"
-                        ? "bg-[#2563eb] text-white"
-                        : "bg-muted",
-                    )}
-                  >
-                    {m.content}
+              {/* Results Summary */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Showing {filteredDocuments.length} of {mockDocuments.length} documents
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" disabled>
+                    Previous
+                  </Button>
+                  <div className="flex items-center space-x-1">
+                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      1
+                    </Button>
                   </div>
+                  <Button variant="outline" size="sm" disabled>
+                    Next
+                  </Button>
                 </div>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 border-t p-2">
-              <Input
-                value={aiInput}
-                onChange={(e) => setAiInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendAi()}
-                placeholder="Ask about HR data..."
-                className="h-8 text-xs"
-              />
-              <Button
-                type="button"
-                onClick={sendAi}
-                className="h-8 px-2 text-xs"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+              </div>
+            </TabsContent>
+
+            {/* System Configuration Tab */}
+            <TabsContent value="settings" className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold">System Configuration</h2>
+                <p className="text-gray-600">Configure system settings and preferences</p>
+                </div>
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-gray-500">System configuration options will be implemented here.</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          // Employee Profile Management Page
+          <div className="space-y-6">
+            {/* Back Button */}
+            <Button 
+              variant="outline" 
+              onClick={() => setShowEmployeeProfile(false)}
+              className="mb-4"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Employee Records
+            </Button>
+
+            {/* Employee Header */}
+            {selectedEmployeeProfile && (
+              <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                <CardContent className="p-8">
+                  <div className="flex items-center space-x-6">
+                    <Avatar className="h-20 w-20 ring-4 ring-blue-100">
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-2xl font-bold">
+                        {selectedEmployeeProfile.firstName?.[0]}{selectedEmployeeProfile.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-4 mb-2">
+                        <h1 className="text-3xl font-bold text-gray-900">
+                          {selectedEmployeeProfile.firstName} {selectedEmployeeProfile.lastName}
+                        </h1>
+                        <Badge 
+                          variant={selectedEmployeeProfile.status === "Active" ? "default" : "secondary"}
+                          className={selectedEmployeeProfile.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}
+                        >
+                          {selectedEmployeeProfile.status}
+                        </Badge>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500">Email</p>
+                          <p className="font-medium">{selectedEmployeeProfile.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Phone</p>
+                          <p className="font-medium">{selectedEmployeeProfile.phone}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Department</p>
+                          <p className="font-medium">{selectedEmployeeProfile.department}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500">Location</p>
+                          <p className="font-medium">{selectedEmployeeProfile.location}</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="mb-2">
+                        <p className="text-gray-500 text-sm">Employee ID</p>
+                        <p className="font-bold text-lg">{mockEmployeeProfileData.employeeId}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-sm">Joined Date</p>
+                        <p className="font-medium">{new Date(selectedEmployeeProfile.joinedDate).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Employee Profile Tabs */}
+            <Tabs value={employeeProfileTab} onValueChange={setEmployeeProfileTab}>
+              <div className="mb-6">
+                <TabsList className="flex w-full bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-sm rounded-xl p-2 overflow-x-auto">
+                  <TabsTrigger 
+                    value="personal"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Personal Info</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="work"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    <span>Work Details</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="skills"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <Award className="h-4 w-4" />
+                    <span>Skills</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="compensation"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    <span>Compensation</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="performance"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <BarChart3 className="h-4 w-4" />
+                    <span>Performance</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="training"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <GraduationCap className="h-4 w-4" />
+                    <span>Training</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="leave"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>Leave & Attendance</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="documents"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Documents</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="application"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <Clock className="h-4 w-4" />
+                    <span>Application History</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="access"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg py-2 px-3 text-sm font-medium flex-shrink-0 min-w-[120px]"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Access & Security</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              {/* Personal Info Tab */}
+              <TabsContent value="personal" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Personal Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Personal Information */}
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">Personal Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">First Name *</Label>
+                          <Input value={mockEmployeeProfileData.firstName} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Middle Name</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.middleName} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Last Name *</Label>
+                          <Input value={mockEmployeeProfileData.lastName} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Date of Birth *</Label>
+                          <Input value={new Date(mockEmployeeProfileData.personalInfo.dateOfBirth).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Gender *</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.gender} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Marital Status</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.maritalStatus} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Nationality</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.nationality} readOnly className="mt-1 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contact Details */}
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">Contact Details</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">Phone Number *</Label>
+                          <Input value={mockEmployeeProfileData.phone} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Alternate Number</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.alternatePhone} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Email Address *</Label>
+                          <Input value={mockEmployeeProfileData.email} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Work Email</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.workEmail} readOnly className="mt-1 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Address Information */}
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">Address Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="md:col-span-3">
+                          <Label className="text-sm font-medium">Street Address *</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.streetAddress} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">City *</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.city} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">State *</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.state} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Zip Code *</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.zipCode} readOnly className="mt-1 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Emergency Contact */}
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">Emergency Contact</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium">Contact Name</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.emergencyContact.name} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Contact Number</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.emergencyContact.phone} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Relationship</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.emergencyContact.relationship} readOnly className="mt-1 text-sm" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium">Alternate Number</Label>
+                          <Input value={mockEmployeeProfileData.personalInfo.emergencyContact.alternatePhone} readOnly className="mt-1 text-sm" />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Add other tabs here - Work Details, Skills, etc. */}
+              <TabsContent value="work" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Work Details</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Position *</Label>
+                        <Input value={mockEmployeeProfileData.workDetails.position} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Department *</Label>
+                        <Input value={mockEmployeeProfileData.workDetails.department} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Reporting Manager *</Label>
+                        <Input value={mockEmployeeProfileData.workDetails.reportingManager} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Employment Status *</Label>
+                        <Input value={mockEmployeeProfileData.workDetails.employmentStatus} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Employment Type *</Label>
+                        <Input value={mockEmployeeProfileData.workDetails.employmentType} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Date Hired *</Label>
+                        <Input value={new Date(mockEmployeeProfileData.workDetails.dateHired).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Skills Tab */}
+              <TabsContent value="skills" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Skills</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {mockEmployeeProfileData.skills.map((skill, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{skill.name}</h4>
+                            <p className="text-sm text-gray-600">{skill.experience} years experience</p>
+                          </div>
+                          <Badge variant="secondary">{skill.level}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Compensation Tab */}
+              <TabsContent value="compensation" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Compensation Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Current Salary *</Label>
+                        <Input value={mockEmployeeProfileData.compensation.currentSalary} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Last Review *</Label>
+                        <Input value={new Date(mockEmployeeProfileData.compensation.lastReview).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Next Review *</Label>
+                        <Input value={new Date(mockEmployeeProfileData.compensation.nextReview).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Performance Tab */}
+              <TabsContent value="performance" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Performance Reviews</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {mockEmployeeProfileData.performance.map((review, index) => (
+                        <div key={index} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{review.reviewPeriod}</h4>
+                            <Badge variant="secondary">{review.rating}</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-1">Reviewer: {review.reviewerName}</p>
+                          <p className="text-sm">{review.comments}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Training Tab */}
+              <TabsContent value="training" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Training and Certifications</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Training Section */}
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">Training</h4>
+                      <div className="space-y-4">
+                        {mockEmployeeProfileData.training.map((training, index) => (
+                          <div key={index} className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium">{training.title}</h5>
+                              <Badge variant="secondary">{training.status}</Badge>
+                            </div>
+                            <p className="text-sm text-gray-600">Provider: {training.provider}</p>
+                            <p className="text-sm text-gray-600">Completed: {new Date(training.dateCompleted).toLocaleDateString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Certifications Section */}
+                    <div>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">Certifications</h4>
+                      <div className="space-y-4">
+                        {mockEmployeeProfileData.certifications.map((cert, index) => (
+                          <div key={index} className="p-4 border rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <h5 className="font-medium">{cert.name}</h5>
+                              <Badge variant={cert.certificateStatus === "Valid" ? "default" : "secondary"}>
+                                {cert.certificateStatus}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600">Organization: {cert.issuedOrganization}</p>
+                            <p className="text-sm text-gray-600">Issued: {new Date(cert.issuedDate).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-600">Expires: {new Date(cert.expiryDate).toLocaleDateString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Leave & Attendance Tab */}
+              <TabsContent value="leave" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Leave & Attendance</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium">Attendance Rate</Label>
+                        <Input value={`${mockEmployeeProfileData.attendance.attendanceRate}%`} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Punctuality Rate</Label>
+                        <Input value={`${mockEmployeeProfileData.attendance.punctualityRate}%`} readOnly className="mt-1 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Documents Tab */}
+              <TabsContent value="documents" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Employee Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {mockEmployeeProfileData.documents.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{doc.title}</h4>
+                            <p className="text-sm text-gray-600">{doc.fileType} • {doc.fileSize}</p>
+                          </div>
+                          <Badge variant="outline">Uploaded: {new Date(doc.uploadDate).toLocaleDateString()}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Application History Tab */}
+              <TabsContent value="application" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Application History</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium">Job ID</Label>
+                        <Input value={mockEmployeeProfileData.applicationHistory.jobId} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Application Date</Label>
+                        <Input value={new Date(mockEmployeeProfileData.applicationHistory.applicationDate).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Application Method</Label>
+                        <Input value={mockEmployeeProfileData.applicationHistory.applicationMethod} readOnly className="mt-1 text-sm" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Access & Security Tab */}
+              <TabsContent value="access" className="space-y-6">
+                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Access & Security</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <Label className="text-sm font-medium">Account Active</Label>
+                          <p className="text-sm text-gray-600">Indicates whether the user account is currently active or inactive</p>
+                        </div>
+                        <Switch defaultChecked={mockEmployeeProfileData.accessSecurity.accountActive} />
+                      </div>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <Label className="text-sm font-medium">HR Access</Label>
+                          <p className="text-sm text-gray-600">Determines if the user has permission to access HR-related features</p>
+                        </div>
+                        <Switch defaultChecked={mockEmployeeProfileData.accessSecurity.hrAccess} />
+                      </div>
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <Label className="text-sm font-medium">Admin Rights</Label>
+                          <p className="text-sm text-gray-600">Specifies whether the user has administrative privileges within the system</p>
+                        </div>
+                        <Switch defaultChecked={mockEmployeeProfileData.accessSecurity.adminRights} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
+        </main>
 
-function MetricCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
-  return (
-    <Card className="flex items-center justify-between rounded-xl border p-4 shadow-sm">
-      <div>
-        <div className="text-xs font-bold text-muted-foreground">{label}</div>
-        <div className="mt-1 text-2xl font-semibold text-foreground">
-          <span className="text-brand">{value}</span>
-        </div>
-      </div>
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand/10 text-brand">
-        {icon}
-      </div>
-    </Card>
-  );
-}
+      {/* Add Employee Modal */}
+      <Dialog open={showAddEmployeeModal} onOpenChange={setShowAddEmployeeModal}>
+        <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+            <DialogTitle>Add New Employee</DialogTitle>
+                  </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input id="firstName" placeholder="Enter first name" />
+                    </div>
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input id="lastName" placeholder="Enter last name" />
+                    </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input id="email" type="email" placeholder="Enter email" />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" placeholder="Enter phone number" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="position">Position *</Label>
+                <Input id="position" placeholder="Enter position" />
+              </div>
+              <div>
+                <Label htmlFor="department">Department *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    <SelectItem value="Product">Product</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Human Resources">Human Resources</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+            </div>
+            <div>
+              <Label htmlFor="skills">Skills</Label>
+              <Input id="skills" placeholder="Enter skills (comma separated)" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="employmentType">Employment Type</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select employment type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                    <SelectItem value="Full-time">Full-time</SelectItem>
+                    <SelectItem value="Part-time">Part-time</SelectItem>
+                    <SelectItem value="Contract">Contract</SelectItem>
+                    <SelectItem value="Intern">Intern</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+              <div>
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input id="startDate" type="date" />
+                    </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddEmployeeModal(false)}>
+                      Cancel
+                    </Button>
+            <Button onClick={() => {
+              setShowAddEmployeeModal(false);
+              toast({
+                title: "Employee Added",
+                description: "New employee has been added successfully.",
+              });
+            }}>
+              Add Employee
+            </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-function RowActions({ employee }: { employee: Employee }) {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  return (
-    <div className="relative inline-block text-left">
-      <Button
-        variant="ghost"
-        className="h-7 w-7 rounded-md p-0"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <EllipsisVertical className="h-4 w-4" />
+      {/* Upload Document Modal */}
+      <Dialog open={showUploadDocumentModal} onOpenChange={setShowUploadDocumentModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Upload Document</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="docTitle">Document Title *</Label>
+                <Input id="docTitle" placeholder="Enter document title" />
+                </div>
+              <div>
+                <Label htmlFor="docType">Document Type *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select document type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="Policy Document">Policy Document</SelectItem>
+                    <SelectItem value="Audit Report">Audit Report</SelectItem>
+                    <SelectItem value="Template">Template</SelectItem>
+                    <SelectItem value="Contract">Contract</SelectItem>
+                    </SelectContent>
+                  </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="HR">Human Resources</SelectItem>
+                    <SelectItem value="Legal">Legal</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Operations">Operations</SelectItem>
+                    </SelectContent>
+                  </Select>
+              </div>
+              <div>
+                <Label htmlFor="department">Department *</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="Human Resources">Human Resources</SelectItem>
+                    <SelectItem value="Legal">Legal</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" placeholder="Enter document description" />
+                          </div>
+            <div>
+              <Label htmlFor="file">File Upload *</Label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
+                <p className="text-xs text-gray-500">PDF, DOCX, DOC, XLS, XLSX files up to 10MB</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="compliance" />
+              <Label htmlFor="compliance">This document requires compliance tracking</Label>
+            </div>
+                  </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUploadDocumentModal(false)}>
+              Cancel
+              </Button>
+            <Button onClick={() => {
+              setShowUploadDocumentModal(false);
+              toast({
+                title: "Document Uploaded",
+                description: "Document has been uploaded successfully.",
+              });
+            }}>
+              Upload Document
       </Button>
-      {open && (
-        <div
-          className="absolute right-0 z-20 mt-2 w-44 origin-top-right overflow-hidden rounded-md border bg-popover p-1 text-sm shadow-md"
-          role="menu"
-        >
-          <button
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left hover:bg-accent"
-            onClick={() => {
-              setOpen(false);
-              navigate(`/manage-profile/${employee.id}`);
-            }}
-          >
-            <User className="h-4 w-4" /> Manage Profile
-          </button>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Department Modal - FR-RM-003 Requirements */}
+      <Dialog open={showManageDepartmentModal} onOpenChange={setShowManageDepartmentModal}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Building2 className="h-5 w-5" />
+              <span>Manage Department</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {/* Department Management Interface */}
+          <div className="space-y-6">
+            {/* Search and Filter Controls */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by department head name"
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Select>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Department Filter" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="executive">Executive</SelectItem>
+                  <SelectItem value="engineering">Engineering</SelectItem>
+                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="hr">Human Resources</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Department
+              </Button>
+            </div>
+
+            {/* Department Table */}
+            <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>DEPARTMENT</TableHead>
+                    <TableHead>COST CENTER</TableHead>
+                    <TableHead>TEAM MEMBERS</TableHead>
+                    <TableHead>DEPARTMENT HEAD</TableHead>
+                    <TableHead>ACTIONS</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Executive</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>CC-001</TableCell>
+                    <TableCell>5</TableCell>
+                    <TableCell>Sarah Johnson</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Engineering</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>CC-002</TableCell>
+                    <TableCell>25</TableCell>
+                    <TableCell>Mike Chen</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Finance</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>CC-003</TableCell>
+                    <TableCell>12</TableCell>
+                    <TableCell>Emily Rodriguez</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Marketing</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>CC-004</TableCell>
+                    <TableCell>8</TableCell>
+                    <TableCell>David Kim</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <Building2 className="h-4 w-4 text-blue-600" />
+                        <span className="font-medium">Human Resources</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>CC-005</TableCell>
+                    <TableCell>6</TableCell>
+                    <TableCell>Lisa Thompson</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <EllipsisVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Card>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Showing 1-5 of 5 departments
+              </p>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" disabled>
+                  Previous
+                </Button>
+                <div className="flex items-center space-x-1">
+                  <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    1
+                  </Button>
+                </div>
+                <Button variant="outline" size="sm" disabled>
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowManageDepartmentModal(false)}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Organizational Chart
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
