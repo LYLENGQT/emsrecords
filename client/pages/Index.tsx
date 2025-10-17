@@ -809,15 +809,13 @@ function OrgChartVisualization() {
     const parentBottomY = parentPos.y + 80; // Bottom of parent card
     const childTopY = childPos.y; // Top of child card
     
-    // Create a more sophisticated path with better visual flow
+    // Create straight lines with right angles like in the example
     const midY = (parentBottomY + childTopY) / 2;
-    const controlPointOffset = 30; // For smoother curves
     
-    // Create a curved path for better visual appeal
+    // Simple L-shaped path: down from parent, then across, then down to child
     return `M ${parentPos.x} ${parentBottomY} 
-            L ${parentPos.x} ${parentBottomY + controlPointOffset}
-            Q ${parentPos.x} ${midY} ${(parentPos.x + childPos.x) / 2} ${midY}
-            Q ${childPos.x} ${midY} ${childPos.x} ${childTopY - controlPointOffset}
+            L ${parentPos.x} ${midY}
+            L ${childPos.x} ${midY}
             L ${childPos.x} ${childTopY}`;
   };
 
@@ -842,45 +840,19 @@ function OrgChartVisualization() {
       <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
         {/* SVG for connections */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
-          {/* Define arrow markers for different relationship types */}
+          {/* Define arrow marker */}
           <defs>
             <marker
               id="arrowhead"
-              markerWidth="10"
-              markerHeight="7"
-              refX="9"
-              refY="3.5"
+              markerWidth="12"
+              markerHeight="8"
+              refX="11"
+              refY="4"
               orient="auto"
             >
               <polygon
-                points="0 0, 10 3.5, 0 7"
-                fill="#6b7280"
-              />
-            </marker>
-            <marker
-              id="arrowhead-blue"
-              markerWidth="10"
-              markerHeight="7"
-              refX="9"
-              refY="3.5"
-              orient="auto"
-            >
-              <polygon
-                points="0 0, 10 3.5, 0 7"
-                fill="#3b82f6"
-              />
-            </marker>
-            <marker
-              id="arrowhead-green"
-              markerWidth="10"
-              markerHeight="7"
-              refX="9"
-              refY="3.5"
-              orient="auto"
-            >
-              <polygon
-                points="0 0, 10 3.5, 0 7"
-                fill="#10b981"
+                points="0 0, 12 4, 0 8"
+                fill="#000000"
               />
             </marker>
           </defs>
@@ -889,33 +861,14 @@ function OrgChartVisualization() {
             if (node.parentId && expandedNodes.has(node.parentId)) {
               const parent = mockOrgChart.find(p => p.id === node.parentId);
               if (parent) {
-                // Determine line style based on relationship level
-                const isDirectReport = parent.children.includes(node.id);
-                const isExecutiveLevel = parent.level === 1;
-                
-                let strokeColor = "#6b7280"; // Default gray
-                let strokeWidth = "2";
-                let markerEnd = "url(#arrowhead)";
-                
-                if (isExecutiveLevel) {
-                  strokeColor = "#3b82f6"; // Blue for executive reports
-                  strokeWidth = "3";
-                  markerEnd = "url(#arrowhead-blue)";
-                } else if (isDirectReport) {
-                  strokeColor = "#10b981"; // Green for direct reports
-                  strokeWidth = "2.5";
-                  markerEnd = "url(#arrowhead-green)";
-                }
-                
                 return (
                   <path
                     key={`${parent.id}-${node.id}`}
                     d={getConnectionPath(parent, node)}
-                    stroke={strokeColor}
-                    strokeWidth={strokeWidth}
+                    stroke="#000000"
+                    strokeWidth="3"
                     fill="none"
-                    markerEnd={markerEnd}
-                    className="transition-all duration-300 hover:stroke-opacity-80"
+                    markerEnd="url(#arrowhead)"
                   />
                 );
               }
