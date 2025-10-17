@@ -775,36 +775,29 @@ function OrgChartVisualization() {
   
   const getNodePosition = (node: any) => {
     const level = node.level;
-    const siblings = mockOrgChart.filter(n => n.parentId === node.parentId);
-    const index = siblings.findIndex(n => n.id === node.id);
-    
-    // Calculate center positioning with dynamic spacing
     const nodeWidth = 240; // Card width (w-60 = 240px)
+    const minSpacing = nodeWidth + 40; // Minimum spacing between nodes
     
-    // Dynamic spacing based on level and total siblings
-    let spacingBetween = 280; // Base spacing
-    if (level === 3) {
-      // Level 3 (individual contributors) - more compact but ensure no overlap
-      spacingBetween = Math.max(nodeWidth + 20, 200);
-    } else if (siblings.length > 4) {
-      // Many siblings - ensure minimum spacing to prevent overlap
-      spacingBetween = Math.max(nodeWidth + 40, 2000 / siblings.length);
-    }
+    // Get all visible nodes at this level
+    const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
+    const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
     
-    const totalWidth = (siblings.length - 1) * spacingBetween;
+    // Calculate total width needed for this level
+    const totalWidth = (visibleNodesAtLevel.length - 1) * minSpacing;
     const containerCenter = 1000; // Center of 2000px container
     const startX = containerCenter - (totalWidth / 2);
     
-    // Add level-based horizontal offset to prevent overlapping
-    const levelOffset = (level - 1) * 20; // Slight offset for each level
+    // Calculate vertical spacing based on level and number of expanded nodes
+    const expandedNodesCount = Array.from(expandedNodes).length;
+    const baseVerticalSpacing = 180;
+    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 20);
     
-    // Calculate total nodes at this level to adjust vertical spacing
-    const totalNodesAtLevel = mockOrgChart.filter(n => n.level === level).length;
-    const verticalSpacing = totalNodesAtLevel > 6 ? 220 : 180; // More space when many nodes
+    // Add level-based horizontal offset to prevent overlapping
+    const levelOffset = (level - 1) * 30;
     
     return {
-      x: startX + (index * spacingBetween) + levelOffset,
-      y: (level - 1) * verticalSpacing + 80,
+      x: startX + (index * minSpacing) + levelOffset,
+      y: (level - 1) * dynamicVerticalSpacing + 80,
     };
   };
 
@@ -828,9 +821,14 @@ function OrgChartVisualization() {
     }
   };
 
+  // Calculate dynamic container dimensions based on visible nodes
+  const maxLevel = Math.max(...visibleNodes.map(n => n.level));
+  const dynamicHeight = Math.max(1000, (maxLevel + 1) * 200 + 200);
+  const dynamicWidth = Math.max(2000, visibleNodes.length * 300);
+  
   return (
-    <div className="relative min-h-[1000px] w-full overflow-x-auto">
-      <div className="relative min-w-[2000px] mx-auto">
+    <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
+      <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
         {/* SVG for connections */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
         {visibleNodes.map(node => {
