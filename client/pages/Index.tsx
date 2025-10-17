@@ -752,6 +752,7 @@ function OrgChartVisualization() {
 
   const handleEmployeeClick = (employeeId: string) => {
     // Only set as selected employee to show subordinates
+    // Don't affect the chart expansion state
     setSelectedEmployee(selectedEmployee === employeeId ? null : employeeId);
   };
 
@@ -891,6 +892,7 @@ function OrgChartVisualization() {
                   selectedEmployee === node.id ? 'ring-2 ring-blue-500 shadow-blue-200' : ''
                 }`}
                 onClick={() => handleEmployeeClick(node.id)}
+                title="Click to view subordinates below"
               >
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3 mb-3">
@@ -930,6 +932,7 @@ function OrgChartVisualization() {
                           toggleNode(node.id);
                         }}
                         className="h-6 w-6 p-0 hover:bg-gray-100"
+                        title={isExpanded ? "Collapse direct reports in chart" : "Expand direct reports in chart"}
                       >
                         {isExpanded ? (
                           <Minus className="h-3 w-3" />
