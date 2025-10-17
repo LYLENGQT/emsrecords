@@ -805,9 +805,20 @@ function OrgChartVisualization() {
     const parentPos = getNodePosition(parentNode);
     const childPos = getNodePosition(childNode);
     
-    const midY = (parentPos.y + childPos.y) / 2;
+    // Calculate connection points (bottom of parent card to top of child card)
+    const parentBottomY = parentPos.y + 80; // Bottom of parent card
+    const childTopY = childPos.y; // Top of child card
     
-    return `M ${parentPos.x} ${parentPos.y + 80} L ${parentPos.x} ${midY} L ${childPos.x} ${midY} L ${childPos.x} ${childPos.y}`;
+    // Create a more sophisticated path with better visual flow
+    const midY = (parentBottomY + childTopY) / 2;
+    const controlPointOffset = 30; // For smoother curves
+    
+    // Create a curved path for better visual appeal
+    return `M ${parentPos.x} ${parentBottomY} 
+            L ${parentPos.x} ${parentBottomY + controlPointOffset}
+            Q ${parentPos.x} ${midY} ${(parentPos.x + childPos.x) / 2} ${midY}
+            Q ${childPos.x} ${midY} ${childPos.x} ${childTopY - controlPointOffset}
+            L ${childPos.x} ${childTopY}`;
   };
 
   const getDepartmentColor = (department: string) => {
@@ -831,24 +842,87 @@ function OrgChartVisualization() {
       <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
         {/* SVG for connections */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
-        {visibleNodes.map(node => {
-          if (node.parentId && expandedNodes.has(node.parentId)) {
-            const parent = mockOrgChart.find(p => p.id === node.parentId);
-            if (parent) {
-              return (
-                <path
-                  key={`${parent.id}-${node.id}`}
-                  d={getConnectionPath(parent, node)}
-                  stroke="#d1d5db"
-                  strokeWidth="2"
-                  fill="none"
-                />
-              );
+          {/* Define arrow markers for different relationship types */}
+          <defs>
+            <marker
+              id="arrowhead"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon
+                points="0 0, 10 3.5, 0 7"
+                fill="#6b7280"
+              />
+            </marker>
+            <marker
+              id="arrowhead-blue"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon
+                points="0 0, 10 3.5, 0 7"
+                fill="#3b82f6"
+              />
+            </marker>
+            <marker
+              id="arrowhead-green"
+              markerWidth="10"
+              markerHeight="7"
+              refX="9"
+              refY="3.5"
+              orient="auto"
+            >
+              <polygon
+                points="0 0, 10 3.5, 0 7"
+                fill="#10b981"
+              />
+            </marker>
+          </defs>
+          
+          {visibleNodes.map(node => {
+            if (node.parentId && expandedNodes.has(node.parentId)) {
+              const parent = mockOrgChart.find(p => p.id === node.parentId);
+              if (parent) {
+                // Determine line style based on relationship level
+                const isDirectReport = parent.children.includes(node.id);
+                const isExecutiveLevel = parent.level === 1;
+                
+                let strokeColor = "#6b7280"; // Default gray
+                let strokeWidth = "2";
+                let markerEnd = "url(#arrowhead)";
+                
+                if (isExecutiveLevel) {
+                  strokeColor = "#3b82f6"; // Blue for executive reports
+                  strokeWidth = "3";
+                  markerEnd = "url(#arrowhead-blue)";
+                } else if (isDirectReport) {
+                  strokeColor = "#10b981"; // Green for direct reports
+                  strokeWidth = "2.5";
+                  markerEnd = "url(#arrowhead-green)";
+                }
+                
+                return (
+                  <path
+                    key={`${parent.id}-${node.id}`}
+                    d={getConnectionPath(parent, node)}
+                    stroke={strokeColor}
+                    strokeWidth={strokeWidth}
+                    fill="none"
+                    markerEnd={markerEnd}
+                    className="transition-all duration-300 hover:stroke-opacity-80"
+                  />
+                );
+              }
             }
-          }
-          return null;
-        })}
-      </svg>
+            return null;
+          })}
+        </svg>
 
         {/* Employee nodes */}
         <div className="relative" style={{ zIndex: 2 }}>
@@ -1967,6 +2041,27 @@ export default function Index() {
                       <span className="text-sm text-gray-600">{mockOrgChart.length} employees</span>
                     </div>
                   </div>
+                  
+                  {/* Connection Lines Legend */}
+                  <div className="bg-blue-50/50 backdrop-blur-sm border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-900 mb-3">Reporting Relationships</h4>
+                    <div className="flex items-center space-x-6 text-sm">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-0.5 bg-blue-500"></div>
+                        <span className="text-blue-700">Executive Reports</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-0.5 bg-green-500"></div>
+                        <span className="text-green-700">Direct Reports</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-0.5 bg-gray-500"></div>
+                        <span className="text-gray-700">Other Relationships</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">Click on employee cards to expand/collapse their direct reports</p>
+                  </div>
+                  
                   <div className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-8 overflow-auto">
                     <OrgChartVisualization />
                   </div>
