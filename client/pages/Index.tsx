@@ -776,7 +776,6 @@ function OrgChartVisualization() {
   const getNodePosition = (node: any) => {
     const level = node.level;
     const nodeWidth = 240; // Card width (w-60 = 240px)
-    const minSpacing = nodeWidth + 60; // Spacing between nodes
     
     // Fixed vertical spacing to match the image
     const verticalSpacing = 280;
@@ -785,22 +784,22 @@ function OrgChartVisualization() {
     
     if (level === 1) {
       // CEO level - center of container
-      x = 1200; // Center of container
+      x = 1500; // Center of container
       y = 80;
     } else if (level === 2) {
-      // Department heads level - spread across horizontally with more spacing
+      // Department heads level - spread far apart horizontally
       const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
       
-      // Increase spacing between department heads to prevent overlap
-      const departmentSpacing = minSpacing + 100; // Extra space between departments
+      // Much larger spacing between department heads
+      const departmentSpacing = 500; // Much larger spacing between departments
       const totalWidth = (visibleNodesAtLevel.length - 1) * departmentSpacing;
-      const containerCenter = 1200; // Center of container
+      const containerCenter = 1500; // Center of container
       const startX = containerCenter - (totalWidth / 2);
       x = startX + (index * departmentSpacing);
       y = (level - 1) * verticalSpacing + 80;
     } else {
-      // Team members level - center under their manager with department separation
+      // Team members level - center under their manager with more spacing
       const manager = mockOrgChart.find(n => n.id === node.parentId);
       if (manager) {
         // Get all direct reports of this manager at this level
@@ -811,16 +810,16 @@ function OrgChartVisualization() {
           // Get manager position
           const managerPos = getNodePosition(manager);
           
-          // Calculate team width with proper spacing, but keep teams compact
-          const teamSpacing = nodeWidth + 40; // Tighter spacing within teams
+          // Calculate team width with more spacing between team members
+          const teamSpacing = 350; // More spacing within teams
           const teamTotalWidth = (managerDirectReports.length - 1) * teamSpacing;
           const teamStartX = managerPos.x - (teamTotalWidth / 2);
           x = teamStartX + (reportIndex * teamSpacing);
         } else {
-          x = 1200; // Fallback to center
+          x = 1500; // Fallback to center
         }
       } else {
-        x = 1200; // Fallback to center
+        x = 1500; // Fallback to center
       }
       y = (level - 1) * verticalSpacing + 80;
     }
@@ -857,18 +856,18 @@ function OrgChartVisualization() {
     }
   };
 
-  // Calculate container dimensions to accommodate department separation
+  // Calculate container dimensions to accommodate much larger spacing
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
   const verticalSpacing = 280;
   
-  // Calculate dynamic width based on the widest level with department separation
+  // Calculate dynamic width based on the widest level with much larger spacing
   const maxNodesAtLevel = Math.max(...Array.from({length: maxLevel + 1}, (_, level) => {
     const nodesAtLevel = visibleNodes.filter(n => n.level === level);
     return nodesAtLevel.length;
   }));
   
   const dynamicHeight = Math.max(1200, (maxLevel + 1) * verticalSpacing + 200);
-  const dynamicWidth = Math.max(3500, maxNodesAtLevel * 400); // Increased width for department separation
+  const dynamicWidth = Math.max(5000, maxNodesAtLevel * 600); // Much larger width for far spacing
   
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
