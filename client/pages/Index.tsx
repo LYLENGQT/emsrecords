@@ -839,7 +839,12 @@ function OrgChartVisualization() {
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
       <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
         {/* SVG for connections */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+        <svg 
+          className="absolute inset-0 w-full h-full pointer-events-none" 
+          style={{ zIndex: 1 }}
+          width="100%" 
+          height="100%"
+        >
           {/* Define arrow marker */}
           <defs>
             <marker
@@ -857,17 +862,24 @@ function OrgChartVisualization() {
             </marker>
           </defs>
           
+          {/* Show all connections - simplified approach */}
           {visibleNodes.map(node => {
-            if (node.parentId && expandedNodes.has(node.parentId)) {
+            if (node.parentId) {
               const parent = mockOrgChart.find(p => p.id === node.parentId);
               if (parent) {
+                const parentPos = getNodePosition(parent);
+                const childPos = getNodePosition(node);
+                
+                // Simple straight line from parent to child
                 return (
-                  <path
+                  <line
                     key={`${parent.id}-${node.id}`}
-                    d={getConnectionPath(parent, node)}
+                    x1={parentPos.x}
+                    y1={parentPos.y + 80}
+                    x2={childPos.x}
+                    y2={childPos.y}
                     stroke="#000000"
                     strokeWidth="3"
-                    fill="none"
                     markerEnd="url(#arrowhead)"
                   />
                 );
