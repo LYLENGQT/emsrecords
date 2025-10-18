@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Tabs,
   TabsContent,
@@ -741,6 +741,17 @@ type ViewMode = "list" | "grid" | "chart";
 function OrgChartVisualization() {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1", "2", "3", "4", "5"])); // All departments expanded by default
   
+  const getDepartmentColor = (department: string) => {
+    switch (department) {
+      case "Executive": return "bg-red-100 text-red-700 border-red-200";
+      case "Engineering": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Finance": return "bg-green-100 text-green-700 border-green-200";
+      case "Marketing": return "bg-orange-100 text-orange-700 border-orange-200";
+      case "Human Resources": return "bg-purple-100 text-purple-700 border-purple-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
+  
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
     if (newExpanded.has(nodeId)) {
@@ -847,16 +858,6 @@ function OrgChartVisualization() {
             L ${childPos.x} ${childTopY}`;
   };
 
-  const getDepartmentColor = (department: string) => {
-    switch (department) {
-      case "Executive": return "bg-red-100 text-red-700 border-red-200";
-      case "Engineering": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Finance": return "bg-green-100 text-green-700 border-green-200";
-      case "Marketing": return "bg-orange-100 text-orange-700 border-orange-200";
-      case "Human Resources": return "bg-purple-100 text-purple-700 border-purple-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
 
   // Calculate container dimensions to accommodate much larger spacing
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
@@ -1050,6 +1051,17 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState("profiles");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
+
+  const getDepartmentColor = (department: string) => {
+    switch (department) {
+      case "Executive": return "bg-red-100 text-red-700 border-red-200";
+      case "Engineering": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "Finance": return "bg-green-100 text-green-700 border-green-200";
+      case "Marketing": return "bg-orange-100 text-orange-700 border-orange-200";
+      case "Human Resources": return "bg-purple-100 text-purple-700 border-purple-200";
+      default: return "bg-gray-100 text-gray-700 border-gray-200";
+    }
+  };
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
