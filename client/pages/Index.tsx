@@ -82,6 +82,8 @@ import {
   Home,
   Minus,
   ArrowUpDown,
+  ChevronDownSquare,
+  ChevronRightSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -1053,7 +1055,7 @@ export default function Index() {
   const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
   const [showUploadDocumentModal, setShowUploadDocumentModal] = useState(false);
   const [expandedOrgNodes, setExpandedOrgNodes] = useState<Set<string>>(new Set());
-  const [orgChartViewMode, setOrgChartViewMode] = useState<"table" | "card" | "chart">("chart");
+  const [orgChartViewMode, setOrgChartViewMode] = useState<"table" | "chart">("table");
   const [showManageDepartmentModal, setShowManageDepartmentModal] = useState(false);
   const [showOrgChartModal, setShowOrgChartModal] = useState(false);
   
@@ -1882,15 +1884,6 @@ export default function Index() {
                     Table View
                     </Button>
                   <Button
-                    variant={orgChartViewMode === "card" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setOrgChartViewMode("card")}
-                    className={orgChartViewMode === "card" ? "bg-blue-600 hover:bg-blue-700" : "border-gray-300 hover:bg-gray-50"}
-                  >
-                    <LayoutGrid className="h-4 w-4 mr-2" />
-                    Card View
-                  </Button>
-                  <Button
                     variant={orgChartViewMode === "chart" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setOrgChartViewMode("chart")}
@@ -1899,7 +1892,7 @@ export default function Index() {
                     <Users className="h-4 w-4 mr-2" />
                     Chart View
                   </Button>
-                  {orgChartViewMode === "card" && (
+                  {orgChartViewMode === "chart" && (
                     <div className="flex items-center space-x-1 ml-4">
                       <Button variant="outline" size="sm">
                         <Minus className="h-4 w-4" />
@@ -1907,168 +1900,174 @@ export default function Index() {
                       <Button variant="outline" size="sm">
                         <Plus className="h-4 w-4" />
                       </Button>
-        </div>
-      )}
-            </div>
+                    </div>
+                  )}
+                </div>
             </div>
 
               {/* Table View - FR-RM-003 Requirements */}
               {orgChartViewMode === "table" && (
-                <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>EMPLOYEE NAME</TableHead>
-                        <TableHead>POSITION</TableHead>
-                        <TableHead>DEPARTMENT</TableHead>
-                        <TableHead>REPORTING STAFF</TableHead>
-                        <TableHead>ACTION</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockOrgChart.map((node) => (
-                        <TableRow key={node.id}>
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
-                                  {node.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{node.name}</p>
-            </div>
-          </div>
-                          </TableCell>
-                          <TableCell>{node.title}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
-                              {node.department}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm font-medium">{node.directReports}</span>
-                              {node.directReports > 0 && (
-            <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleOrgNode(node.id)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  {expandedOrgNodes.has(node.id) ? (
-                                    <Minus className="h-3 w-3" />
-                                  ) : (
-                                    <Plus className="h-3 w-3" />
-                                  )}
-            </Button>
-      )}
-    </div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
-                                  <EllipsisVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
-                                <DropdownMenuItem 
-                                  className="rounded-lg"
-                                  onClick={() => setOrgChartViewMode("chart")}
-                                >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Chart
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg">
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Card>
-              )}
-
-              {/* Card View - FR-RM-003 Requirements */}
-              {orgChartViewMode === "card" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Card View</h3>
-                    <p className="text-sm text-gray-600">{mockOrgChart.length} employees</p>
-          </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {mockOrgChart.map((node) => (
-                      <Card key={node.id} className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
-                        <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start space-x-4">
-                              <Avatar className="h-12 w-12 ring-2 ring-blue-100">
-                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
-                                  {node.name.split(' ').map(n => n[0]).join('')}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                                  {node.name}
-                                </h3>
-                                <p className="text-sm text-gray-600 mb-2">{node.title}</p>
-                                <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                    <h3 className="text-lg font-semibold text-gray-900">List View</h3>
+                    <span className="text-sm text-gray-600">{mockOrgChart.length} employees</span>
+                  </div>
+                  
+                  <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>EMPLOYEE NAME</TableHead>
+                          <TableHead>POSITION</TableHead>
+                          <TableHead>DEPARTMENT</TableHead>
+                          <TableHead>REPORTING STAFF</TableHead>
+                          <TableHead>ACTION</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockOrgChart.map((node) => (
+                          <React.Fragment key={node.id}>
+                            <TableRow className="hover:bg-gray-50">
+                              <TableCell>
+                                <div className="flex items-center space-x-3">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => {
+                                      const newExpanded = new Set(expandedOrgNodes);
+                                      if (newExpanded.has(node.id)) {
+                                        newExpanded.delete(node.id);
+                                      } else {
+                                        newExpanded.add(node.id);
+                                      }
+                                      setExpandedOrgNodes(newExpanded);
+                                    }}
+                                  >
+                                    {expandedOrgNodes.has(node.id) ? (
+                                      <ChevronDownSquare className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRightSquare className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
+                                      {node.name.split(' ').map(n => n[0]).join('')}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <p className="font-medium">{node.name}</p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell>{node.title}</TableCell>
+                              <TableCell>
+                                <Badge variant="secondary" className={getDepartmentColor(node.department)}>
                                   {node.department}
                                 </Badge>
-                                <div className="flex items-center space-x-2 mt-3">
-                                  <Users className="h-4 w-4 text-gray-400" />
-                                  <span className="text-sm text-gray-600">
-                                    {node.directReports} direct reports
-                                  </span>
-                                  {node.directReports > 0 && (
-                          <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => toggleOrgNode(node.id)}
-                                      className="h-6 w-6 p-0"
-                                    >
-                                      {expandedOrgNodes.has(node.id) ? (
-                                        <Minus className="h-3 w-3" />
-                                      ) : (
-                                        <Plus className="h-3 w-3" />
-                                      )}
+                              </TableCell>
+                              <TableCell>
+                                <span className="text-sm font-medium">{node.directReports} direct reports</span>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center space-x-2">
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    View Chart Mode
+                                  </Button>
+                                  <Button variant="outline" size="sm">
+                                    <Pencil className="h-4 w-4 mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button variant="outline" size="sm">
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Add Report
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                            
+                            {/* Show direct reports if expanded */}
+                            {expandedOrgNodes.has(node.id) && node.children.map((childId) => {
+                              const child = mockOrgChart.find(emp => emp.id === childId);
+                              if (!child) return null;
+                              
+                              return (
+                                <TableRow key={child.id} className="hover:bg-gray-50 bg-gray-25">
+                                  <TableCell className="pl-16">
+                                    <div className="flex items-center space-x-3">
+                                      <Avatar className="h-6 w-6">
+                                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
+                                          {child.name.split(' ').map(n => n[0]).join('')}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <p className="font-medium text-sm">{child.name}</p>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-sm">{child.title}</TableCell>
+                                  <TableCell>
+                                    <Badge variant="secondary" className={getDepartmentColor(child.department)}>
+                                      {child.department}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="text-sm">{child.directReports} direct reports</span>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center space-x-2">
+                                      <Button variant="outline" size="sm">
+                                        <Eye className="h-4 w-4 mr-1" />
+                                        View Chart Mode
+                                      </Button>
+                                      <Button variant="outline" size="sm">
+                                        <Pencil className="h-4 w-4 mr-1" />
+                                        Edit
+                                      </Button>
+                                      <Button variant="outline" size="sm">
+                                        <Plus className="h-4 w-4 mr-1" />
+                                        Add Report
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </React.Fragment>
+                        ))}
+                      </TableBody>
+                    </Table>
+                    
+                    {/* Pagination Controls */}
+                    <div className="bg-white px-6 py-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-700">
+                          Showing {mockOrgChart.length} of {mockOrgChart.length} employees
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button variant="outline" size="sm" disabled>
+                            Previous
                           </Button>
-                                  )}
-            </div>
-              </div>
-                            </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="hover:bg-gray-100">
-                                  <EllipsisVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
-                        <DropdownMenuItem
-                                  className="rounded-lg"
-                                  onClick={() => setOrgChartViewMode("chart")}
-                        >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Chart
-                        </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg">
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Edit
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                          </div>
-                          </div>
+                          <Button variant="default" size="sm">
+                            1
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            2
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            3
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
               )}
+
 
               {/* Chart View - FR-RM-003 Requirements */}
               {orgChartViewMode === "chart" && (
@@ -2076,10 +2075,9 @@ export default function Index() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Organizational Chart</h3>
                     <div className="flex items-center space-x-4">
-                      <span className="text-sm text-gray-600">Zoom: 80%</span>
-                      <span className="text-sm text-gray-600">{mockOrgChart.length} employees</span>
-                        </div>
-                        </div>
+                      <span className="text-sm text-gray-600">Zoom: 80% | {mockOrgChart.length} employees</span>
+                    </div>
+                  </div>
                   
                   {/* Connection Lines Legend */}
                   <div className="bg-blue-50/50 backdrop-blur-sm border border-blue-200 rounded-lg p-4">
