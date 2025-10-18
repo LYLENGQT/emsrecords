@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef, useLayoutEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Tabs,
   TabsContent,
@@ -214,6 +215,16 @@ const mockEmployees = [
   },
 ];
 
+// Utility: enforce MM-DD-YYYY date format across the module
+function formatDate(value?: string | number | Date | null) {
+  if (!value) return "";
+  const d = new Date(value);
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${mm}-${dd}-${yyyy}`;
+}
+
 const mockDocuments = [
   {
     id: "1",
@@ -336,6 +347,9 @@ const mockDocuments = [
     downloads: 167,
   },
 ];
+
+// Current UI user (frontend-only; used for uploads)
+const CURRENT_USER = "HR Admin";
 
 // Mock data for employee profile details
 const mockEmployeeProfileData = {
@@ -738,8 +752,8 @@ const mockOrgChart = [
 type ViewMode = "list" | "grid" | "chart";
 
 // Organizational Chart Visualization Component
-function OrgChartVisualization() {
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1", "2", "3", "4", "5"])); // All departments expanded by default
+function OrgChartVisualization({ chartZoom }: { chartZoom: number }) {
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1"])); // Show CEO and direct children only
   
   const getDepartmentColor = (department: string) => {
     switch (department) {
@@ -753,13 +767,24 @@ function OrgChartVisualization() {
   };
   
   const toggleNode = (nodeId: string) => {
-    const newExpanded = new Set(expandedNodes);
-    if (newExpanded.has(nodeId)) {
-      newExpanded.delete(nodeId);
-    } else {
-      newExpanded.add(nodeId);
-    }
-    setExpandedNodes(newExpanded);
+    setExpandedNodes(prev => {
+      const next = new Set(prev);
+      const isExpanded = next.has(nodeId);
+      if (isExpanded) {
+        // collapse this node and all descendants
+        const collapseQueue = [nodeId];
+        while (collapseQueue.length) {
+          const current = collapseQueue.pop()!;
+          next.delete(current);
+          const childIds = childrenMap[current] || [];
+          childIds.forEach(id => collapseQueue.push(id));
+        }
+      } else {
+        // expand only this node (show direct children)
+        next.add(nodeId);
+      }
+      return next;
+    });
   };
 
   const handleEmployeeClick = (employeeId: string) => {
@@ -768,9 +793,8 @@ function OrgChartVisualization() {
   };
 
 
-  const getVisibleNodes = () => {
+  const visibleNodes = useMemo(() => {
     const visible = new Set<string>();
-    
     const addNodeAndChildren = (nodeId: string) => {
       visible.add(nodeId);
       const node = mockOrgChart.find(n => n.id === nodeId);
@@ -778,104 +802,156 @@ function OrgChartVisualization() {
         node.children.forEach(childId => addNodeAndChildren(childId));
       }
     };
-    
-    // Start with CEO
     addNodeAndChildren("1");
-    return Array.from(visible).map(id => mockOrgChart.find(n => n.id === id)!);
+    return Array.from(visible).map(id => mockOrgChart.find(n => n.id === id)!).filter(Boolean);
+  }, [expandedNodes]);
+  
+  // Dynamic layout engine
+  const chartPadding = 40;
+  const minHorizontalGap = 72; // ~ 60–80px gap between siblings
+  const levelVerticalGap = 110; // vertical spacing between levels (100–120px)
+  const cardHeight = 120; // approximate card height for line routing
+
+  // Measure node widths
+  const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [nodeWidths, setNodeWidths] = useState<Record<string, number>>({});
+
+  const [viewport, setViewport] = useState({ w: typeof window !== 'undefined' ? window.innerWidth : 0, h: typeof window !== 'undefined' ? window.innerHeight : 0 });
+  useEffect(() => {
+    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useLayoutEffect(() => {
+    const next: Record<string, number> = {};
+    visibleNodes.forEach(n => {
+      const el = nodeRefs.current[n.id];
+      next[n.id] = el?.offsetWidth || 200; // fallback width
+    });
+    const changed = Object.keys(next).some(k => next[k] !== nodeWidths[k]);
+    if (changed) setNodeWidths(next);
+  }, [visibleNodes, viewport]);
+
+  // Build child map of visible nodes
+  const visibleIds = new Set(visibleNodes.map(n => n.id));
+  const childrenMap: Record<string, string[]> = {};
+  visibleNodes.forEach(n => {
+    if (!n.parentId) return;
+    if (!visibleIds.has(n.parentId)) return;
+    if (!childrenMap[n.parentId]) childrenMap[n.parentId] = [];
+    childrenMap[n.parentId].push(n.id);
+  });
+
+  // Recursively compute subtree widths
+  const getSubtreeWidth = (nodeId: string): number => {
+    const selfWidth = nodeWidths[nodeId] || 200;
+    const kids = childrenMap[nodeId] || [];
+    if (kids.length === 0) return selfWidth;
+    const childrenWidths = kids.map(id => getSubtreeWidth(id));
+    const totalChildren = childrenWidths.reduce((a, b) => a + b, 0) + (kids.length - 1) * minHorizontalGap;
+    return Math.max(selfWidth, totalChildren);
   };
 
-  const visibleNodes = getVisibleNodes();
-  
-  const getNodePosition = (node: any) => {
-    const level = node.level;
-    
-    if (level === 1) {
-      return { x: 1200, y: 100 };
-    } else if (level === 2) {
-      const departmentPositions = {
-        "2": { x: 200, y: 280 },
-        "3": { x: 500, y: 280 },
-        "4": { x: 800, y: 280 },
-        "5": { x: 1100, y: 280 }
-      };
-      return departmentPositions[node.id] || { x: 800, y: 280 };
-    } else {
-      const manager = mockOrgChart.find(n => n.id === node.parentId);
-      if (!manager) return { x: 800, y: 480 };
-      
-      const managerPos = getNodePosition(manager);
-      const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
-      const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
-      
-      const teamSpacing = 250;
-      const teamStartX = managerPos.x - ((managerDirectReports.length - 1) * teamSpacing) / 2;
-      
-      return {
-        x: teamStartX + (reportIndex * teamSpacing),
-        y: 480
-      };
+  // Assign positions with top-down reflow (parent centered above children group)
+  const nodePositions: Record<string, { x: number; y: number; level: number }> = {};
+  const assignPositions = (nodeId: string, left: number, level: number) => {
+    const kids = childrenMap[nodeId] || [];
+    const subtreeWidth = getSubtreeWidth(nodeId);
+    const y = chartPadding + level * (levelVerticalGap + cardHeight);
+    // Tentative x; will be corrected after children are placed
+    let x = left + subtreeWidth / 2;
+    nodePositions[nodeId] = { x, y, level };
+    // Place children evenly left to right (using subtree widths)
+    let cursor = left;
+    kids.forEach((childId, index) => {
+      const w = getSubtreeWidth(childId);
+      assignPositions(childId, cursor, level + 1);
+      cursor += w + minHorizontalGap;
+    });
+    // Re-center parent exactly between children's centers (if any)
+    if (kids.length > 0) {
+      const minX = Math.min(...kids.map(id => nodePositions[id].x));
+      const maxX = Math.max(...kids.map(id => nodePositions[id].x));
+      x = kids.length === 1 ? minX : (minX + maxX) / 2;
+      nodePositions[nodeId] = { x, y, level };
     }
   };
 
-  const containerHeight = 600;
-  const containerWidth = 1400;
+  // Kick off layout from the CEO (id "1")
+  const rootId = "1";
+  const rootWidth = getSubtreeWidth(rootId);
+  assignPositions(rootId, chartPadding, 0);
+
+  // Compute container size
+  const computedLevels = Math.max(...visibleNodes.map(n => nodePositions[n.id]?.level ?? 0)) + 1;
+  const containerWidth = rootWidth + chartPadding * 2;
+  const containerHeight = chartPadding * 2 + computedLevels * (levelVerticalGap + cardHeight);
   
-  return (
+    return (
     <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerHeight}px`, minWidth: `${containerWidth}px` }}>
-      <div className="relative mx-auto" style={{ width: `${containerWidth}px`, height: `${containerHeight}px` }}>
-        {/* Connection lines between employees - separate for each department */}
+      <div className="relative mx-auto" style={{ width: `${containerWidth}px`, height: `${containerHeight}px`, transform: `scale(${chartZoom})`, transformOrigin: 'top left' }}>
+        {/* Connection lines redraw from positions - L-shaped (vertical/horizontal) */}
         {visibleNodes.map(node => {
           if (node.parentId) {
             const parent = mockOrgChart.find(p => p.id === node.parentId);
             if (parent) {
-              const parentPos = getNodePosition(parent);
-              const childPos = getNodePosition(node);
+              const parentPos = nodePositions[parent.id];
+              const childPos = nodePositions[node.id];
               
-              // Get department color for line styling
-              const departmentColor = getDepartmentColor(node.department).split(' ')[0].replace('bg-', '');
-              let lineColor = '#000000'; // Default black
+              // Unified minimalist connector styling
+              const lineColor = 'rgba(0, 0, 0, 0.15)'; // soft gray
+              const lineThickness = 1.5; // px
+              const detachOffset = 10; // px gap from card edges
               
-              // Map department colors to line colors
-              switch (node.department) {
-                case 'Engineering': lineColor = '#3b82f6'; break; // Blue
-                case 'Finance': lineColor = '#10b981'; break; // Green
-                case 'Marketing': lineColor = '#f59e0b'; break; // Orange
-                case 'Human Resources': lineColor = '#8b5cf6'; break; // Purple
-                case 'Executive': lineColor = '#ef4444'; break; // Red
-                default: lineColor = '#6b7280'; break; // Gray
-              }
-              
-              // Calculate line positions for traditional org chart style
-              const parentBottomY = parentPos.y + 80; // Bottom of parent card
-              const childTopY = childPos.y; // Top of child card
+              // Calculate line positions with offsets (slightly detached from cards)
+              const parentBottomY = parentPos.y + cardHeight + detachOffset; // start a bit below the card
+              const childTopY = childPos.y - detachOffset; // end a bit above the card
               
               // Get all direct reports of the parent to calculate main horizontal line
-              const parentDirectReports = mockOrgChart.filter(n => n.parentId === parent.id);
+              const childIds = childrenMap[parent.id] || [];
+              const parentDirectReports = childIds.map(id => mockOrgChart.find(n => n.id === id)!).filter(Boolean);
               const departmentIndex = parentDirectReports.findIndex(n => n.id === node.id);
               
               // Calculate positions for traditional org chart
-              const mainVerticalY = parentBottomY + 50; // Main vertical line extends down from parent
-              const mainHorizontalY = mainVerticalY + 50; // Horizontal branch line
+              const mainVerticalY = parentBottomY; // short vertical drop already offset
+              const mainHorizontalY = (parentBottomY + childTopY) / 2; // centered between nodes
+
+              // Horizontal should run from center of first child to center of last child
+              const firstChildX = Math.min(...childIds.map(id => nodePositions[id].x));
+              const lastChildX = Math.max(...childIds.map(id => nodePositions[id].x));
+
+              // Parent vertical should drop from parent's center to mid-point of horizontal
+              const horizontalMidX = (firstChildX + lastChildX) / 2;
               
               // Only draw the main vertical line from the first child (to avoid duplicates)
               const isFirstChild = departmentIndex === 0;
 
   return (
-                <div key={`${parent.id}-${node.id}`}>
+                <AnimatePresence key={`${parent.id}-${node.id}`}>
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                  >
                   {/* Main vertical line from parent (only for first child) */}
                   {isFirstChild && (
                     <div 
                       className="absolute"
                       style={{
                         left: `${parentPos.x}px`,
-                        top: `${parentBottomY}px`,
-                        width: '3px',
-                        height: `${mainVerticalY - parentBottomY}px`,
-                        backgroundColor: '#000000',
+                        top: `${parentBottomY - 8}px`,
+                        width: `${lineThickness}px`,
+                        height: `${8}px`,
+                        backgroundColor: lineColor,
+                        borderRadius: '9999px',
+                        opacity: 0.8,
                         zIndex: 1,
                         transform: 'translateX(-50%)'
                       }}
-                    />
+                  />
                   )}
                   
                   {/* Main horizontal branch line (only for first child) */}
@@ -883,31 +959,68 @@ function OrgChartVisualization() {
                     <div 
                       className="absolute"
                       style={{
-                        left: `${Math.min(...parentDirectReports.map(r => getNodePosition(r).x))}px`,
+                        left: `${firstChildX}px`,
                         top: `${mainHorizontalY}px`,
-                        width: `${Math.max(...parentDirectReports.map(r => getNodePosition(r).x)) - Math.min(...parentDirectReports.map(r => getNodePosition(r).x))}px`,
-                        height: '3px',
-                        backgroundColor: '#000000',
+                        width: `${lastChildX - firstChildX}px`,
+                        height: `${lineThickness}px`,
+                        backgroundColor: lineColor,
+                        borderRadius: '9999px',
+                        opacity: 0.8,
                         zIndex: 1,
                         transform: 'translateY(-50%)'
                       }}
-                    />
+                  />
                   )}
                   
-                  {/* Vertical line down to this specific child */}
+                  {/* Vertical line from horizontal mid to each child top (symmetrical) */}
                   <div 
                     className="absolute"
                     style={{
                       left: `${childPos.x}px`,
                       top: `${mainHorizontalY}px`,
-                      width: '3px',
+                      width: `${lineThickness}px`,
                       height: `${childTopY - mainHorizontalY}px`,
-                      backgroundColor: '#000000',
+                      backgroundColor: lineColor,
+                      borderRadius: '9999px',
+                      opacity: 0.8,
                       zIndex: 1,
                       transform: 'translateX(-50%)'
                     }}
                   />
-            </div>
+                  {/* Rounded joint dot for smoother corner at child connector */}
+                  <div 
+                    className="absolute"
+                    style={{
+                      left: `${childPos.x}px`,
+                      top: `${mainHorizontalY}px`,
+                      width: '6px',
+                      height: '6px',
+                      backgroundColor: lineColor,
+                      opacity: 0.8,
+                      borderRadius: '9999px',
+                      zIndex: 1,
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                  />
+                  {/* Parent vertical alignment dot at midpoint */}
+                  {isFirstChild && (
+                    <div
+                      className="absolute"
+                      style={{
+                        left: `${horizontalMidX}px`,
+                        top: `${mainHorizontalY}px`,
+                        width: '6px',
+                        height: '6px',
+                        backgroundColor: lineColor,
+                        opacity: 0.8,
+                        borderRadius: '9999px',
+                        zIndex: 1,
+                        transform: 'translate(-50%, -50%)'
+                      }}
+                    />
+                  )}
+                  </motion.div>
+                </AnimatePresence>
               );
             }
           }
@@ -917,74 +1030,67 @@ function OrgChartVisualization() {
         {/* Employee nodes */}
         <div className="relative" style={{ zIndex: 2 }}>
         {visibleNodes.map(node => {
-          const position = getNodePosition(node);
+          const position = nodePositions[node.id];
           const hasChildren = node.children.length > 0;
           const isExpanded = expandedNodes.has(node.id);
-          
-    return (
-            <div
-              key={node.id}
-              className="absolute"
-              style={{
-                left: `${position.x - 110}px`, // Center the card (card width is 220px)
-                top: `${position.y}px`,
-                zIndex: 10, // Ensure cards are above connection lines
-                transition: 'all 0.3s ease-in-out', // Smooth transitions
-              }}
-            >
-              <Card 
-                className="w-48 bg-white shadow-md border border-gray-300 rounded-lg hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                onClick={() => handleEmployeeClick(node.id)}
-                title="Click to expand/collapse direct reports in chart"
+
+          return (
+            <AnimatePresence key={node.id}>
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.25 }}
+                className="absolute"
+                style={{
+                  left: `${position.x - 110}px`,
+                  top: `${position.y}px`,
+                  zIndex: 10,
+                }}
               >
-                <CardContent className="p-4">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full mb-3 flex items-center justify-center">
-                      <User className="h-4 w-4 text-blue-600" />
+                <Card
+                  className="w-48 bg-white shadow-md border border-gray-300 rounded-lg hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                  onClick={() => handleEmployeeClick(node.id)}
+                  title="Click to expand/collapse direct reports in chart"
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full mb-3 flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
                             </div>
-                    <h3 className="font-semibold text-sm text-gray-900 mb-1 leading-tight">
-                      {node.name}
-                    </h3>
-                    <p className="text-xs text-gray-600 mb-3 leading-tight">{node.title}</p>
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs px-2 py-1 rounded-full ${getDepartmentColor(node.department)}`}
-                    >
-                      {node.department}
-                    </Badge>
-              </div>
-                  
-                  {hasChildren && (
-                    <div className="mt-3 flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        {node.directReports} direct reports
-                    </span>
+                      <h3 className="font-semibold text-sm text-gray-900 mb-1 leading-tight">{node.name}</h3>
+                      <p className="text-xs text-gray-600 mb-3 leading-tight">{node.title}</p>
+                      <Badge variant="secondary" className={`text-xs px-2 py-1 rounded-full ${getDepartmentColor(node.department)}`}>
+                        {node.department}
+                      </Badge>
+                          </div>
+
+                    {hasChildren && (
+                      <div className="mt-3 flex items-center justify-between">
+                        <span className="text-xs text-gray-500">{node.directReports} direct reports</span>
                     <Button
-                  variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Just toggle the expand/collapse, don't set selected employee
-                          toggleNode(node.id);
-                        }}
-                        className="h-6 w-6 p-0 hover:bg-gray-100"
-                        title={isExpanded ? "Collapse direct reports in chart" : "Expand direct reports in chart"}
-                      >
-                        {isExpanded ? (
-                          <Minus className="h-3 w-3" />
-                        ) : (
-                          <Plus className="h-3 w-3" />
-                        )}
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleNode(node.id);
+                          }}
+                          className="h-6 w-6 p-0 hover:bg-gray-100"
+                          title={isExpanded ? "Collapse direct reports in chart" : "Expand direct reports in chart"}
+                        >
+                          {isExpanded ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                     </Button>
-        </div>
-      )}
-                </CardContent>
-              </Card>
-            </div>
-                  );
+                  </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+          );
         })}
-            </div>
-            </div>
+          </div>
+        </div>
     </div>
   );
 }
@@ -993,6 +1099,7 @@ export default function Index() {
   const [activeTab, setActiveTab] = useState("profiles");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [chartZoom, setChartZoom] = useState(1);
 
   const getDepartmentColor = (department: string) => {
     switch (department) {
@@ -1055,14 +1162,22 @@ export default function Index() {
   }, []);
 
   
-  // Document Center states
+  // Document Center states (FR-RM-004)
+  const [documents, setDocuments] = useState([...mockDocuments]);
   const [documentSearchQuery, setDocumentSearchQuery] = useState("");
   const [documentCategory, setDocumentCategory] = useState("all");
   const [documentDepartment, setDocumentDepartment] = useState("all");
   const [documentFileType, setDocumentFileType] = useState("all");
   const [documentUploadDate, setDocumentUploadDate] = useState("all");
-  const [documentSortField, setDocumentSortField] = useState("uploadDate");
+  const [documentSortField, setDocumentSortField] = useState<string | string[]>("uploadDate");
   const [documentSortDirection, setDocumentSortDirection] = useState<"asc" | "desc">("desc");
+  const [documentSelected, setDocumentSelected] = useState<Set<string>>(new Set());
+  const [documentPage, setDocumentPage] = useState(1);
+  const pageSize = 10;
+  const [uploadBuffer, setUploadBuffer] = useState<{ title: string; category: string; department: string; expirationDate: string; file?: File | null }>({ title: "", category: "", department: "", expirationDate: "", file: null });
+  const [editBuffer, setEditBuffer] = useState<any>(null);
+  const [viewDoc, setViewDoc] = useState<any>(null);
+  const [deleteDoc, setDeleteDoc] = useState<any>(null);
   
   // Employee Profile Management states
   const [showEmployeeProfile, setShowEmployeeProfile] = useState(false);
@@ -1105,16 +1220,27 @@ export default function Index() {
   };
 
   // Document filtering and sorting logic
+  const fuzzyIncludes = (text: string, query: string) => {
+    if (!query) return true;
+    const t = text.toLowerCase();
+    const q = query.toLowerCase();
+    let ti = 0;
+    for (let qi = 0; qi < q.length; qi++) {
+      const ch = q[qi];
+      ti = t.indexOf(ch, ti);
+      if (ti === -1) return false;
+      ti++;
+    }
+    return true;
+  };
+
   const filteredDocuments = useMemo(() => {
-    let filtered = mockDocuments.filter((doc) => {
+    let filtered = documents.filter((doc) => {
       // Search filter
       if (documentSearchQuery) {
         const searchLower = documentSearchQuery.toLowerCase();
-        const matchesSearch = 
-          doc.title.toLowerCase().includes(searchLower) ||
-          doc.category.toLowerCase().includes(searchLower) ||
-          doc.department.toLowerCase().includes(searchLower) ||
-          doc.uploadedBy.toLowerCase().includes(searchLower);
+        const haystack = `${doc.title} ${doc.category} ${doc.department ?? ""} ${doc.fileType} ${doc.uploadedBy}`.toLowerCase();
+        const matchesSearch = haystack.includes(searchLower) || fuzzyIncludes(haystack, searchLower);
         if (!matchesSearch) return false;
       }
 
@@ -1155,60 +1281,45 @@ export default function Index() {
       return true;
     });
 
-    // Sort documents
+    // Sort documents (supports multi-column by chaining)
+    const priority = Array.isArray(documentSortField) ? documentSortField : [documentSortField];
+    const compareField = (a: any, b: any, field: string) => {
+      let aValue: any, bValue: any;
+      switch (field) {
+        case "title": aValue = a.title.toLowerCase(); bValue = b.title.toLowerCase(); break;
+        case "category": aValue = a.category.toLowerCase(); bValue = b.category.toLowerCase(); break;
+        case "department": aValue = (a.department || "").toLowerCase(); bValue = (b.department || "").toLowerCase(); break;
+        case "fileType": aValue = a.fileType.toLowerCase(); bValue = b.fileType.toLowerCase(); break;
+        case "uploadDate": aValue = new Date(a.uploadDate).getTime(); bValue = new Date(b.uploadDate).getTime(); break;
+        case "expirationDate": aValue = a.expirationDate ? new Date(a.expirationDate).getTime() : 0; bValue = b.expirationDate ? new Date(b.expirationDate).getTime() : 0; break;
+        case "uploadedBy": aValue = a.uploadedBy.toLowerCase(); bValue = b.uploadedBy.toLowerCase(); break;
+        default: return 0;
+      }
+      if (documentSortDirection === "asc") return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    };
     filtered.sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (documentSortField) {
-        case "title":
-          aValue = a.title.toLowerCase();
-          bValue = b.title.toLowerCase();
-          break;
-        case "category":
-          aValue = a.category.toLowerCase();
-          bValue = b.category.toLowerCase();
-          break;
-        case "department":
-          aValue = a.department.toLowerCase();
-          bValue = b.department.toLowerCase();
-          break;
-        case "fileType":
-          aValue = a.fileType.toLowerCase();
-          bValue = b.fileType.toLowerCase();
-          break;
-        case "uploadDate":
-          aValue = new Date(a.uploadDate).getTime();
-          bValue = new Date(b.uploadDate).getTime();
-          break;
-        case "expirationDate":
-          aValue = a.expirationDate ? new Date(a.expirationDate).getTime() : 0;
-          bValue = b.expirationDate ? new Date(b.expirationDate).getTime() : 0;
-          break;
-        case "uploadedBy":
-          aValue = a.uploadedBy.toLowerCase();
-          bValue = b.uploadedBy.toLowerCase();
-          break;
-        default:
-          return 0;
+      for (const field of priority) {
+        const cmp = compareField(a, b, field);
+        if (cmp !== 0) return cmp;
       }
-
-      if (documentSortDirection === "asc") {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
+      return 0;
     });
 
     return filtered;
-  }, [documentSearchQuery, documentCategory, documentDepartment, documentFileType, documentUploadDate, documentSortField, documentSortDirection]);
+  }, [documents, documentSearchQuery, documentCategory, documentDepartment, documentFileType, documentUploadDate, documentSortField, documentSortDirection]);
 
   const handleDocumentSort = (field: string) => {
-    if (documentSortField === field) {
-      setDocumentSortDirection(documentSortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setDocumentSortField(field);
+    setDocumentSortField((prev: any) => {
+      const prevArr = Array.isArray(prev) ? prev : [prev];
+      if (prevArr[0] === field && !Array.isArray(prev)) {
+        setDocumentSortDirection(documentSortDirection === "asc" ? "desc" : "asc");
+        return field;
+      }
+      const next = [field, ...prevArr.filter((f) => f !== field)];
       setDocumentSortDirection("asc");
-    }
+      return next;
+    });
   };
 
   const isDocumentExpired = (expirationDate: string | null) => {
@@ -1705,7 +1816,7 @@ export default function Index() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {new Date(employee.joinedDate).toLocaleDateString()}
+                            {formatDate(employee.joinedDate)}
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -1864,7 +1975,7 @@ export default function Index() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900">List View</h3>
-                    <span className="text-sm text-gray-600">{mockOrgChart.length} employees</span>
+                    <span className="text-sm text-gray-600">{mockOrgChart.filter(n => (n.children || []).length > 0).length} managers</span>
                   </div>
                   
                   <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
@@ -1879,31 +1990,12 @@ export default function Index() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {mockOrgChart.map((node) => (
+                        {mockOrgChart.filter(n => (n.children || []).length > 0).map((node) => (
                           <React.Fragment key={node.id}>
                             <TableRow className="hover:bg-gray-50">
                               <TableCell>
                                 <div className="flex items-center space-x-3">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => {
-                                      const newExpanded = new Set(expandedOrgNodes);
-                                      if (newExpanded.has(node.id)) {
-                                        newExpanded.delete(node.id);
-                                      } else {
-                                        newExpanded.add(node.id);
-                                      }
-                                      setExpandedOrgNodes(newExpanded);
-                                    }}
-                                  >
-                                    {expandedOrgNodes.has(node.id) ? (
-                                      <ChevronDownSquare className="h-4 w-4" />
-                                    ) : (
-                                      <ChevronRightSquare className="h-4 w-4" />
-                                    )}
-                                  </Button>
+                                  {/* Toggle removed per latest rule: list view shows parents only */}
                                   <Avatar className="h-8 w-8">
                                     <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
                                       {node.name.split(' ').map(n => n[0]).join('')}
@@ -1941,53 +2033,7 @@ export default function Index() {
                               </TableCell>
                             </TableRow>
                             
-                            {/* Show direct reports if expanded */}
-                            {expandedOrgNodes.has(node.id) && node.children.map((childId) => {
-                              const child = mockOrgChart.find(emp => emp.id === childId);
-                              if (!child) return null;
-                              
-                              return (
-                                <TableRow key={child.id} className="hover:bg-gray-50 bg-gray-25">
-                                  <TableCell className="pl-16">
-                                    <div className="flex items-center space-x-3">
-                                      <Avatar className="h-6 w-6">
-                                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs">
-                                          {child.name.split(' ').map(n => n[0]).join('')}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                      <div>
-                                        <p className="font-medium text-sm">{child.name}</p>
-                                      </div>
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-sm">{child.title}</TableCell>
-                                  <TableCell>
-                                    <Badge variant="secondary" className={getDepartmentColor(child.department)}>
-                                      {child.department}
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                    <span className="text-sm">{child.directReports} direct reports</span>
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex items-center space-x-2">
-                                      <Button variant="outline" size="sm">
-                                        <Eye className="h-4 w-4 mr-1" />
-                                        View Chart Mode
-                                      </Button>
-                                      <Button variant="outline" size="sm">
-                                        <Pencil className="h-4 w-4 mr-1" />
-                                        Edit
-                                      </Button>
-                                      <Button variant="outline" size="sm">
-                                        <Plus className="h-4 w-4 mr-1" />
-                                        Add Report
-                                      </Button>
-                                    </div>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
+                            {/* Children rows removed per latest rule */}
                           </React.Fragment>
                         ))}
                       </TableBody>
@@ -1997,7 +2043,7 @@ export default function Index() {
                     <div className="bg-white px-6 py-4 border-t border-gray-200">
                       <div className="flex items-center justify-between">
                         <div className="text-sm text-gray-700">
-                          Showing {mockOrgChart.length} of {mockOrgChart.length} employees
+                          Showing {mockOrgChart.filter(n => (n.children || []).length > 0).length} of {mockOrgChart.filter(n => (n.children || []).length > 0).length} managers
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button variant="outline" size="sm" disabled>
@@ -2030,28 +2076,32 @@ export default function Index() {
                     <h3 className="text-lg font-semibold">Organizational Chart</h3>
                     <div className="flex items-center space-x-4">
                       <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
+                          <Button
+                            variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0"
-                        >
+                          onClick={() => setChartZoom(z => Math.max(0.5, Math.round((z - 0.1) * 10) / 10))}
+                          title="Zoom out"
+                          >
                           -
-                        </Button>
-                        <Button
+                          </Button>
+                          <Button
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0"
+                          onClick={() => setChartZoom(z => Math.min(2, Math.round((z + 0.1) * 10) / 10))}
+                          title="Zoom in"
                         >
                           +
-                        </Button>
+                          </Button>
                       </div>
                       <span className="text-sm text-gray-600">
-                        Zoom: 80% | {mockOrgChart.length} employees
+                        Zoom: {Math.round(chartZoom * 100)}% | {mockOrgChart.length} employees
                       </span>
                     </div>
                   </div>
                   
-                  <OrgChartVisualization />
+                  <OrgChartVisualization chartZoom={chartZoom} />
                 </div>
               )}
 
@@ -2089,10 +2139,10 @@ export default function Index() {
                   <h2 className="text-2xl font-bold">Document Center</h2>
                   <p className="text-gray-600">Centralized document management and retrieval system</p>
                 </div>
-                <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
-                    Export
+                  Export CSV
                   </Button>
                   <Button
                     onClick={() => setShowUploadDocumentModal(true)}
@@ -2225,6 +2275,20 @@ export default function Index() {
                 <Table>
                     <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">
+                        <input
+                          type="checkbox"
+                          aria-label="Select all"
+                          className="h-4 w-4 rounded border-gray-300"
+                          checked={filteredDocuments.length > 0 && filteredDocuments.every(d => documentSelected.has(d.id))}
+                          onChange={(e) => {
+                            const next = new Set(documentSelected);
+                            if (e.target.checked) filteredDocuments.forEach(d => next.add(d.id));
+                            else filteredDocuments.forEach(d => next.delete(d.id));
+                            setDocumentSelected(next);
+                          }}
+                        />
+                        </TableHead>
                       <TableHead 
                         className="cursor-pointer hover:bg-gray-50"
                         onClick={() => handleDocumentSort("title")}
@@ -2292,8 +2356,22 @@ export default function Index() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {filteredDocuments.map((doc) => (
+                    {filteredDocuments
+                      .slice((documentPage - 1) * pageSize, documentPage * pageSize)
+                      .map((doc) => (
                       <TableRow key={doc.id}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300"
+                            checked={documentSelected.has(doc.id)}
+                            onChange={(e) => {
+                              const next = new Set(documentSelected);
+                              if (e.target.checked) next.add(doc.id); else next.delete(doc.id);
+                              setDocumentSelected(next);
+                            }}
+                          />
+                          </TableCell>
                         <TableCell className="font-medium">{doc.title}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -2306,11 +2384,11 @@ export default function Index() {
                             {doc.fileType}
                           </Badge>
                           </TableCell>
-                        <TableCell>{new Date(doc.uploadDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDate(doc.uploadDate)}</TableCell>
                         <TableCell>
                           {doc.expirationDate ? (
                             <span className={isDocumentExpired(doc.expirationDate) ? "text-red-600 font-medium" : "text-gray-600"}>
-                              {new Date(doc.expirationDate).toLocaleDateString()}
+                              {formatDate(doc.expirationDate)}
                               {isDocumentExpired(doc.expirationDate) && " (Expired)"}
                                   </span>
                           ) : (
@@ -2347,23 +2425,50 @@ export default function Index() {
                   </Table>
               </Card>
 
-              {/* Results Summary */}
+              {/* Results Summary + Pagination */}
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600">
-                  Showing {filteredDocuments.length} of {mockDocuments.length} documents
+                  Showing {Math.min(pageSize, Math.max(0, filteredDocuments.length - (documentPage - 1) * pageSize))} of {filteredDocuments.length} documents
                 </p>
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm" disabled>
+                  <Button variant="outline" size="sm" onClick={() => setDocumentPage(p => Math.max(1, p - 1))} disabled={documentPage === 1}>
                     Previous
-                    </Button>
+                  </Button>
                   <div className="flex items-center space-x-1">
-                    <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      1
-                    </Button>
+                    <span className="text-sm text-gray-600">Page {documentPage} of {Math.max(1, Math.ceil(filteredDocuments.length / pageSize))}</span>
                   </div>
-                  <Button variant="outline" size="sm" disabled>
+                  <Button variant="outline" size="sm" onClick={() => setDocumentPage(p => Math.min(Math.ceil(filteredDocuments.length / pageSize) || 1, p + 1))} disabled={documentPage >= Math.ceil(filteredDocuments.length / pageSize)}>
                     Next
                   </Button>
+                    <Button
+                      variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Export CSV of selected or all filtered
+                      const rows = (documentSelected.size > 0
+                        ? filteredDocuments.filter(d => documentSelected.has(d.id))
+                        : filteredDocuments).map(d => ({
+                        title: d.title,
+                        category: d.category,
+                        department: d.department || "",
+                        fileType: d.fileType,
+                        uploadDate: formatDate(d.uploadDate),
+                        expirationDate: d.expirationDate ? formatDate(d.expirationDate) : "",
+                        uploadedBy: d.uploadedBy,
+                      }));
+                      const header = Object.keys(rows[0] || { title: "", category: "", department: "", fileType: "", uploadDate: "", expirationDate: "", uploadedBy: "" });
+                      const csv = [header.join(","), ...rows.map(r => header.map(h => `"${String((r as any)[h]).replace(/"/g, '""')}"`).join(","))].join("\n");
+                      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `documents_${Date.now()}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Export CSV ({documentSelected.size > 0 ? `${documentSelected.size} selected` : 'all filtered'})
+                    </Button>
                 </div>
               </div>
             </TabsContent>
@@ -2442,7 +2547,7 @@ export default function Index() {
                       </div>
                       <div>
                         <p className="text-gray-500 text-sm">Joined Date</p>
-                        <p className="font-medium">{new Date(selectedEmployeeProfile.joinedDate).toLocaleDateString()}</p>
+                        <p className="font-medium">{formatDate(selectedEmployeeProfile.joinedDate)}</p>
                       </div>
                     </div>
                   </div>
@@ -2552,7 +2657,7 @@ export default function Index() {
                           </div>
                         <div>
                           <Label className="text-sm font-medium">Date of Birth *</Label>
-                          <Input value={new Date(mockEmployeeProfileData.personalInfo.dateOfBirth).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                        <Input value={formatDate(mockEmployeeProfileData.personalInfo.dateOfBirth)} readOnly className="mt-1 text-sm" />
                         </div>
                         <div>
                           <Label className="text-sm font-medium">Gender *</Label>
@@ -2671,7 +2776,7 @@ export default function Index() {
                       </div>
                       <div>
                         <Label className="text-sm font-medium">Date Hired *</Label>
-                        <Input value={new Date(mockEmployeeProfileData.workDetails.dateHired).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                        <Input value={formatDate(mockEmployeeProfileData.workDetails.dateHired)} readOnly className="mt-1 text-sm" />
                       </div>
                     </div>
                   </CardContent>
@@ -2714,11 +2819,11 @@ export default function Index() {
                       </div>
                       <div>
                         <Label className="text-sm font-medium">Last Review *</Label>
-                        <Input value={new Date(mockEmployeeProfileData.compensation.lastReview).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                        <Input value={formatDate(mockEmployeeProfileData.compensation.lastReview)} readOnly className="mt-1 text-sm" />
                       </div>
                       <div>
                         <Label className="text-sm font-medium">Next Review *</Label>
-                        <Input value={new Date(mockEmployeeProfileData.compensation.nextReview).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                        <Input value={formatDate(mockEmployeeProfileData.compensation.nextReview)} readOnly className="mt-1 text-sm" />
                       </div>
                     </div>
                   </CardContent>
@@ -2766,7 +2871,7 @@ export default function Index() {
                               <Badge variant="secondary">{training.status}</Badge>
                             </div>
                             <p className="text-sm text-gray-600">Provider: {training.provider}</p>
-                            <p className="text-sm text-gray-600">Completed: {new Date(training.dateCompleted).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-600">Completed: {formatDate(training.dateCompleted)}</p>
                           </div>
                         ))}
                       </div>
@@ -2785,8 +2890,8 @@ export default function Index() {
                                 </Badge>
                             </div>
                             <p className="text-sm text-gray-600">Organization: {cert.issuedOrganization}</p>
-                            <p className="text-sm text-gray-600">Issued: {new Date(cert.issuedDate).toLocaleDateString()}</p>
-                            <p className="text-sm text-gray-600">Expires: {new Date(cert.expiryDate).toLocaleDateString()}</p>
+                            <p className="text-sm text-gray-600">Issued: {formatDate(cert.issuedDate)}</p>
+                            <p className="text-sm text-gray-600">Expires: {formatDate(cert.expiryDate)}</p>
                           </div>
                               ))}
                             </div>
@@ -2830,7 +2935,7 @@ export default function Index() {
                             <h4 className="font-medium">{doc.title}</h4>
                             <p className="text-sm text-gray-600">{doc.fileType} • {doc.fileSize}</p>
                           </div>
-                          <Badge variant="outline">Uploaded: {new Date(doc.uploadDate).toLocaleDateString()}</Badge>
+                          <Badge variant="outline">Uploaded: {formatDate(doc.uploadDate)}</Badge>
                   </div>
                 ))}
                     </div>
@@ -2852,7 +2957,7 @@ export default function Index() {
                       </div>
                       <div>
                         <Label className="text-sm font-medium">Application Date</Label>
-                        <Input value={new Date(mockEmployeeProfileData.applicationHistory.applicationDate).toLocaleDateString()} readOnly className="mt-1 text-sm" />
+                        <Input value={formatDate(mockEmployeeProfileData.applicationHistory.applicationDate)} readOnly className="mt-1 text-sm" />
                       </div>
                       <div>
                         <Label className="text-sm font-medium">Application Method</Label>
@@ -3001,83 +3106,91 @@ export default function Index() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="docTitle">Document Title *</Label>
-                <Input id="docTitle" placeholder="Enter document title" />
+                <Input id="docTitle" placeholder="Enter document title" value={uploadBuffer.title}
+                  onChange={(e) => setUploadBuffer({ ...uploadBuffer, title: e.target.value })} />
                 </div>
               <div>
-                <Label htmlFor="docType">Document Type *</Label>
-                <Select>
+                <Label htmlFor="category">Category *</Label>
+                <Select value={uploadBuffer.category} onValueChange={(v) => setUploadBuffer({ ...uploadBuffer, category: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select document type" />
+                    <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                    <SelectItem value="Policy Document">Policy Document</SelectItem>
-                    <SelectItem value="Audit Report">Audit Report</SelectItem>
-                    <SelectItem value="Template">Template</SelectItem>
-                    <SelectItem value="Contract">Contract</SelectItem>
+                    <SelectItem value="Employee Records">Employee Records</SelectItem>
+                    <SelectItem value="Policies">Policies</SelectItem>
+                    <SelectItem value="Compliance">Compliance</SelectItem>
+                    <SelectItem value="Training">Training</SelectItem>
+                    <SelectItem value="Forms & Templates">Forms & Templates</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="category">Category *</Label>
-                <Select>
+                <Label htmlFor="department">Department</Label>
+                <Select value={uploadBuffer.department} onValueChange={(v) => setUploadBuffer({ ...uploadBuffer, department: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="All Departments" />
                     </SelectTrigger>
                     <SelectContent>
-                    <SelectItem value="HR">Human Resources</SelectItem>
+                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="Human Resources">Human Resources</SelectItem>
                     <SelectItem value="Legal">Legal</SelectItem>
                     <SelectItem value="Finance">Finance</SelectItem>
                     <SelectItem value="Operations">Operations</SelectItem>
+                    <SelectItem value="IT">IT</SelectItem>
+                    <SelectItem value="Engineering">Engineering</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
                     </SelectContent>
                   </Select>
               </div>
               <div>
-                <Label htmlFor="department">Department *</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                    <SelectItem value="Human Resources">Human Resources</SelectItem>
-                    <SelectItem value="Legal">Legal</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Engineering">Engineering</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Label htmlFor="expiration">Expiration Date</Label>
+                <Input id="expiration" type="date" value={uploadBuffer.expirationDate}
+                  onChange={(e) => setUploadBuffer({ ...uploadBuffer, expirationDate: e.target.value })} />
               </div>
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" placeholder="Enter document description" />
-                          </div>
+            </div>
             <div>
               <Label htmlFor="file">File Upload *</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
-                <p className="text-xs text-gray-500">PDF, DOCX, DOC, XLS, XLSX files up to 10MB</p>
-              </div>
+              <input
+                id="file"
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx"
+                onChange={(e) => setUploadBuffer({ ...uploadBuffer, file: e.target.files?.[0] || null })}
+                className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+              />
+              <p className="text-xs text-gray-500 mt-1">PDF, DOCX, DOC, XLS, XLSX up to 10MB</p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Checkbox id="compliance" />
-              <Label htmlFor="compliance">This document requires compliance tracking</Label>
-            </div>
-                  </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUploadDocumentModal(false)}>
               Cancel
-              </Button>
-            <Button onClick={() => {
-              setShowUploadDocumentModal(false);
-              toast({
-                title: "Document Uploaded",
-                description: "Document has been uploaded successfully.",
-              });
-            }}>
+            </Button>
+            <Button
+              disabled={!uploadBuffer.title || !uploadBuffer.category || !uploadBuffer.file || (uploadBuffer.file && uploadBuffer.file.size > 10 * 1024 * 1024)}
+              onClick={() => {
+                if (!uploadBuffer.file) return;
+                const file = uploadBuffer.file;
+                const ext = file.name.split('.').pop()?.toUpperCase() || "";
+                const typeMap: Record<string, string> = { PDF: 'PDF', DOC: 'DOC', DOCX: 'DOCX', XLS: 'XLS', XLSX: 'XLSX' };
+                const newDoc = {
+                  id: String(Date.now()),
+                  title: uploadBuffer.title,
+                  category: uploadBuffer.category,
+                  department: uploadBuffer.department || "",
+                  fileType: typeMap[ext] || ext,
+                  uploadDate: new Date().toISOString(),
+                  expirationDate: uploadBuffer.expirationDate || null,
+                  uploadedBy: CURRENT_USER,
+                } as any;
+                setDocuments((prev) => [newDoc, ...prev]);
+                setDocumentSelected(new Set());
+                setShowUploadDocumentModal(false);
+                setUploadBuffer({ title: "", category: "", department: "", expirationDate: "", file: null });
+              }}
+            >
               Upload Document
-      </Button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3108,16 +3221,16 @@ export default function Index() {
               <Select>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Department Filter" />
-                </SelectTrigger>
-                <SelectContent>
+                    </SelectTrigger>
+                    <SelectContent>
                   <SelectItem value="all">All Departments</SelectItem>
                   <SelectItem value="executive">Executive</SelectItem>
                   <SelectItem value="engineering">Engineering</SelectItem>
                   <SelectItem value="finance">Finance</SelectItem>
                   <SelectItem value="marketing">Marketing</SelectItem>
                   <SelectItem value="hr">Human Resources</SelectItem>
-                </SelectContent>
-              </Select>
+                    </SelectContent>
+                  </Select>
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -3126,7 +3239,7 @@ export default function Index() {
                 <Plus className="h-4 w-4 mr-2" />
                 Add Department
               </Button>
-            </div>
+              </div>
 
             {/* Department Table */}
             <Card>
