@@ -788,53 +788,44 @@ function OrgChartVisualization() {
   
   const getNodePosition = (node: any) => {
     const level = node.level;
-    const nodeWidth = 240; // Card width (w-60 = 240px)
-    
-    // Fixed vertical spacing to match the image
-    const verticalSpacing = 280;
+    const nodeWidth = 200; // Card width
+    const horizontalSpacing = 280; // Spacing between cards horizontally
+    const verticalSpacing = 220; // Spacing between levels
     
     let x, y;
     
     if (level === 1) {
-      // CEO level - center of container
-      x = 1500; // Center of container
-      y = 80;
+      // CEO level - center
+      x = 400;
+      y = 50;
     } else if (level === 2) {
-      // Department heads level - spread far apart horizontally
+      // Department heads - spread horizontally
       const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
-      
-      // Much larger spacing between department heads
-      const departmentSpacing = 500; // Much larger spacing between departments
-      const totalWidth = (visibleNodesAtLevel.length - 1) * departmentSpacing;
-      const containerCenter = 1500; // Center of container
-      const startX = containerCenter - (totalWidth / 2);
-      x = startX + (index * departmentSpacing);
-      y = (level - 1) * verticalSpacing + 80;
+      const totalWidth = (visibleNodesAtLevel.length - 1) * horizontalSpacing;
+      const startX = 400 - (totalWidth / 2);
+      x = startX + (index * horizontalSpacing);
+      y = level * verticalSpacing;
     } else {
-      // Team members level - center under their manager with more spacing
+      // Team members - center under their manager
       const manager = mockOrgChart.find(n => n.id === node.parentId);
       if (manager) {
-        // Get all direct reports of this manager at this level
         const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
         const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
         
         if (managerDirectReports.length > 0) {
-          // Get manager position
           const managerPos = getNodePosition(manager);
-          
-          // Calculate team width with more spacing between team members
-          const teamSpacing = 350; // More spacing within teams
+          const teamSpacing = 200;
           const teamTotalWidth = (managerDirectReports.length - 1) * teamSpacing;
           const teamStartX = managerPos.x - (teamTotalWidth / 2);
           x = teamStartX + (reportIndex * teamSpacing);
         } else {
-          x = 1500; // Fallback to center
+          x = 400;
         }
       } else {
-        x = 1500; // Fallback to center
+        x = 400;
       }
-      y = (level - 1) * verticalSpacing + 80;
+      y = level * verticalSpacing;
     }
     
     return { x, y };
@@ -859,22 +850,13 @@ function OrgChartVisualization() {
   };
 
 
-  // Calculate container dimensions to accommodate much larger spacing
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
-  const verticalSpacing = 280;
-  
-  // Calculate dynamic width based on the widest level with much larger spacing
-  const maxNodesAtLevel = Math.max(...Array.from({length: maxLevel + 1}, (_, level) => {
-    const nodesAtLevel = visibleNodes.filter(n => n.level === level);
-    return nodesAtLevel.length;
-  }));
-  
-  const dynamicHeight = Math.max(1200, (maxLevel + 1) * verticalSpacing + 200);
-  const dynamicWidth = Math.max(5000, maxNodesAtLevel * 600); // Much larger width for far spacing
+  const containerHeight = (maxLevel + 1) * 220 + 100;
+  const containerWidth = 1200;
   
   return (
-    <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
-      <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
+    <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerHeight}px`, minWidth: `${containerWidth}px` }}>
+      <div className="relative mx-auto" style={{ width: `${containerWidth}px`, height: `${containerHeight}px` }}>
         {/* Connection lines between employees - separate for each department */}
         {visibleNodes.map(node => {
           if (node.parentId) {
@@ -2091,29 +2073,7 @@ export default function Index() {
                     </div>
                   </div>
                   
-                  {/* Connection Lines Legend */}
-                  <div className="bg-blue-50/50 backdrop-blur-sm border border-blue-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-3">Reporting Relationships</h4>
-                    <div className="flex items-center space-x-6 text-sm">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-0.5 bg-blue-500"></div>
-                        <span className="text-blue-700">Executive Reports</span>
-                          </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-0.5 bg-green-500"></div>
-                        <span className="text-green-700">Direct Reports</span>
-                          </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-0.5 bg-gray-500"></div>
-                        <span className="text-gray-700">Other Relationships</span>
-                        </div>
-                          </div>
-                    <p className="text-xs text-gray-600 mt-2">Click on employee cards to expand/collapse their direct reports</p>
-                  </div>
-                  
-                  <div className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl p-8 overflow-auto">
-                    <OrgChartVisualization />
-                  </div>
+                  <OrgChartVisualization />
                 </div>
               )}
 
