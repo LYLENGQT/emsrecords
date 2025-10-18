@@ -838,17 +838,78 @@ function OrgChartVisualization() {
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
       <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
-        {/* Test line to see if positioning works */}
-        <div 
-          className="absolute bg-black"
-          style={{
-            left: '100px',
-            top: '100px',
-            width: '200px',
-            height: '3px',
-            zIndex: 5
-          }}
-        />
+        {/* Connection lines between employees */}
+        {visibleNodes.map(node => {
+          if (node.parentId) {
+            const parent = mockOrgChart.find(p => p.id === node.parentId);
+            if (parent) {
+              const parentPos = getNodePosition(parent);
+              const childPos = getNodePosition(node);
+              
+              // Calculate line positions
+              const parentBottomY = parentPos.y + 80; // Bottom of parent card
+              const childTopY = childPos.y; // Top of child card
+              const midY = (parentBottomY + childTopY) / 2;
+              
+              return (
+                <div key={`${parent.id}-${node.id}`}>
+                  {/* Vertical line from parent */}
+                  <div 
+                    className="absolute bg-black"
+                    style={{
+                      left: `${parentPos.x}px`,
+                      top: `${parentBottomY}px`,
+                      width: '3px',
+                      height: `${midY - parentBottomY}px`,
+                      zIndex: 1,
+                      transform: 'translateX(-50%)'
+                    }}
+                  />
+                  {/* Horizontal line across */}
+                  <div 
+                    className="absolute bg-black"
+                    style={{
+                      left: `${Math.min(parentPos.x, childPos.x)}px`,
+                      top: `${midY}px`,
+                      width: `${Math.abs(childPos.x - parentPos.x)}px`,
+                      height: '3px',
+                      zIndex: 1,
+                      transform: 'translateY(-50%)'
+                    }}
+                  />
+                  {/* Vertical line to child */}
+                  <div 
+                    className="absolute bg-black"
+                    style={{
+                      left: `${childPos.x}px`,
+                      top: `${midY}px`,
+                      width: '3px',
+                      height: `${childTopY - midY}px`,
+                      zIndex: 1,
+                      transform: 'translateX(-50%)'
+                    }}
+                  />
+                  {/* Arrowhead */}
+                  <div 
+                    className="absolute"
+                    style={{
+                      left: `${childPos.x}px`,
+                      top: `${childTopY - 10}px`,
+                      width: '0',
+                      height: '0',
+                      borderLeft: '8px solid transparent',
+                      borderRight: '8px solid transparent',
+                      borderTop: '12px solid #000000',
+                      zIndex: 1,
+                      transform: 'translateX(-50%)'
+                    }}
+                  />
+                </div>
+              );
+            }
+          }
+          return null;
+        })}
         
         {/* Employee nodes */}
         <div className="relative" style={{ zIndex: 2 }}>
