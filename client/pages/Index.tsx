@@ -860,18 +860,29 @@ function OrgChartVisualization() {
                 default: lineColor = '#6b7280'; break; // Gray
               }
               
-              // Calculate line positions
+              // Calculate line positions with department separation
               const parentBottomY = parentPos.y + 80; // Bottom of parent card
               const childTopY = childPos.y; // Top of child card
+              
+              // Create separate vertical lines for each department from CEO
+              // Get all direct reports of the parent to calculate department spacing
+              const parentDirectReports = mockOrgChart.filter(n => n.parentId === parent.id);
+              const departmentIndex = parentDirectReports.findIndex(n => n.id === node.id);
+              
+              // Calculate spacing for department separation
+              const departmentSpacing = 40; // Space between department lines
+              const startOffset = -(parentDirectReports.length - 1) * departmentSpacing / 2;
+              const departmentOffset = startOffset + (departmentIndex * departmentSpacing);
+              
               const midY = (parentBottomY + childTopY) / 2;
               
               return (
                 <div key={`${parent.id}-${node.id}`}>
-                  {/* Vertical line from parent */}
+                  {/* Vertical line from parent - offset for department separation */}
                   <div 
                     className="absolute"
                     style={{
-                      left: `${parentPos.x}px`,
+                      left: `${parentPos.x + departmentOffset}px`,
                       top: `${parentBottomY}px`,
                       width: '3px',
                       height: `${midY - parentBottomY}px`,
@@ -884,9 +895,9 @@ function OrgChartVisualization() {
                   <div 
                     className="absolute"
                     style={{
-                      left: `${Math.min(parentPos.x, childPos.x)}px`,
+                      left: `${Math.min(parentPos.x + departmentOffset, childPos.x)}px`,
                       top: `${midY}px`,
-                      width: `${Math.abs(childPos.x - parentPos.x)}px`,
+                      width: `${Math.abs(childPos.x - (parentPos.x + departmentOffset))}px`,
                       height: '3px',
                       backgroundColor: lineColor,
                       zIndex: 1,
