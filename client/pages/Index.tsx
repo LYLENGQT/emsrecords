@@ -791,37 +791,35 @@ function OrgChartVisualization() {
     const cardWidth = 200;
     const cardHeight = 120;
     
-    // Define specific positions based on the second image layout
+    // Calculate positions to ensure no overlapping with proper spacing
     if (level === 1) {
       // CEO - center top
-      return { x: 600, y: 50 };
+      return { x: 800, y: 80 };
     } else if (level === 2) {
-      // Department heads - spread horizontally
-      const positions = [
-        { x: 200, y: 200 }, // Sarah Mitchell (Engineering)
-        { x: 400, y: 200 }, // David Park (Finance)  
-        { x: 600, y: 200 }, // Jessica Wang (Marketing)
-        { x: 800, y: 200 }  // Amanda Foster (HR)
-      ];
-      const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
-      const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
-      return positions[index] || { x: 600, y: 200 };
+      // Department heads - spread horizontally with proper spacing
+      const departmentPositions = {
+        "2": { x: 200, y: 280 }, // Sarah Mitchell (Engineering)
+        "3": { x: 500, y: 280 }, // David Park (Finance)
+        "4": { x: 800, y: 280 }, // Jessica Wang (Marketing)
+        "5": { x: 1100, y: 280 } // Amanda Foster (HR)
+      };
+      return departmentPositions[node.id] || { x: 800, y: 280 };
     } else {
-      // Team members - positioned under their managers
+      // Team members - positioned under their managers with proper spacing
       const manager = mockOrgChart.find(n => n.id === node.parentId);
-      if (!manager) return { x: 600, y: 350 };
+      if (!manager) return { x: 800, y: 480 };
       
       const managerPos = getNodePosition(manager);
       const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
       const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
       
-      // Position team members centered under their manager
-      const teamSpacing = 180;
+      // Position team members with enough spacing to prevent overlap
+      const teamSpacing = 250; // Increased spacing
       const teamStartX = managerPos.x - ((managerDirectReports.length - 1) * teamSpacing) / 2;
       
       return {
         x: teamStartX + (reportIndex * teamSpacing),
-        y: 350
+        y: 480
       };
     }
   };
@@ -845,8 +843,8 @@ function OrgChartVisualization() {
   };
 
 
-  const containerHeight = 500;
-  const containerWidth = 1200;
+  const containerHeight = 600;
+  const containerWidth = 1400;
   
   return (
     <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerHeight}px`, minWidth: `${containerWidth}px` }}>
@@ -954,9 +952,8 @@ function OrgChartVisualization() {
               key={node.id}
               className="absolute"
               style={{
-                left: `${position.x}px`,
+                left: `${position.x - 100}px`, // Center the card (card width is 200px)
                 top: `${position.y}px`,
-                transform: 'translateX(-50%)',
               }}
             >
               <Card 
