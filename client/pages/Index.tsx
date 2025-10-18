@@ -788,47 +788,42 @@ function OrgChartVisualization() {
   
   const getNodePosition = (node: any) => {
     const level = node.level;
-    const nodeWidth = 200; // Card width
-    const horizontalSpacing = 320; // Increased spacing between cards horizontally
-    const verticalSpacing = 280; // Increased spacing between levels
+    const cardWidth = 200;
+    const cardHeight = 120;
     
-    let x, y;
-    
+    // Define specific positions based on the second image layout
     if (level === 1) {
-      // CEO level - center
-      x = 600;
-      y = 80;
+      // CEO - center top
+      return { x: 600, y: 50 };
     } else if (level === 2) {
-      // Department heads - spread horizontally with more space
+      // Department heads - spread horizontally
+      const positions = [
+        { x: 200, y: 200 }, // Sarah Mitchell (Engineering)
+        { x: 400, y: 200 }, // David Park (Finance)  
+        { x: 600, y: 200 }, // Jessica Wang (Marketing)
+        { x: 800, y: 200 }  // Amanda Foster (HR)
+      ];
       const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
-      const totalWidth = (visibleNodesAtLevel.length - 1) * horizontalSpacing;
-      const startX = 600 - (totalWidth / 2);
-      x = startX + (index * horizontalSpacing);
-      y = level * verticalSpacing;
+      return positions[index] || { x: 600, y: 200 };
     } else {
-      // Team members - center under their manager with proper spacing
+      // Team members - positioned under their managers
       const manager = mockOrgChart.find(n => n.id === node.parentId);
-      if (manager) {
-        const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
-        const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
-        
-        if (managerDirectReports.length > 0) {
-          const managerPos = getNodePosition(manager);
-          const teamSpacing = 250; // Increased team spacing
-          const teamTotalWidth = (managerDirectReports.length - 1) * teamSpacing;
-          const teamStartX = managerPos.x - (teamTotalWidth / 2);
-          x = teamStartX + (reportIndex * teamSpacing);
-        } else {
-          x = 600;
-        }
-      } else {
-        x = 600;
-      }
-      y = level * verticalSpacing;
+      if (!manager) return { x: 600, y: 350 };
+      
+      const managerPos = getNodePosition(manager);
+      const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
+      const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
+      
+      // Position team members centered under their manager
+      const teamSpacing = 180;
+      const teamStartX = managerPos.x - ((managerDirectReports.length - 1) * teamSpacing) / 2;
+      
+      return {
+        x: teamStartX + (reportIndex * teamSpacing),
+        y: 350
+      };
     }
-    
-    return { x, y };
   };
 
   const getConnectionPath = (parentNode: any, childNode: any) => {
@@ -850,9 +845,8 @@ function OrgChartVisualization() {
   };
 
 
-  const maxLevel = Math.max(...visibleNodes.map(n => n.level));
-  const containerHeight = (maxLevel + 1) * 280 + 200;
-  const containerWidth = 1600;
+  const containerHeight = 500;
+  const containerWidth = 1200;
   
   return (
     <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerHeight}px`, minWidth: `${containerWidth}px` }}>
@@ -966,33 +960,26 @@ function OrgChartVisualization() {
               }}
             >
               <Card 
-                className="w-60 bg-white shadow-lg border-0 rounded-xl hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+                className="w-48 bg-white shadow-md border border-gray-300 rounded-lg hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                 onClick={() => handleEmployeeClick(node.id)}
                 title="Click to expand/collapse direct reports in chart"
               >
                 <CardContent className="p-4">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Avatar className="h-10 w-10 ring-2 ring-blue-100">
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
-                        {node.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm text-gray-900 truncate">
-                {node.name}
-                      </h4>
-                      <p className="text-xs text-gray-600 truncate">
-            {node.title}
-                      </p>
-              </div>
-            </div>
-                  
-                  <Badge 
-                    variant="secondary" 
-                    className={`text-xs ${getDepartmentColor(node.department)}`}
-          >
-            {node.department}
-                  </Badge>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full mb-3 flex items-center justify-center">
+                      <User className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-sm text-gray-900 mb-1 leading-tight">
+                      {node.name}
+                    </h3>
+                    <p className="text-xs text-gray-600 mb-3 leading-tight">{node.title}</p>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs px-2 py-1 rounded-full ${getDepartmentColor(node.department)}`}
+                    >
+                      {node.department}
+                    </Badge>
+                  </div>
                   
                   {hasChildren && (
                     <div className="mt-3 flex items-center justify-between">
