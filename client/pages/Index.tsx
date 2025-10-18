@@ -838,13 +838,27 @@ function OrgChartVisualization() {
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
       <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
-        {/* Connection lines between employees */}
+        {/* Connection lines between employees - separate for each department */}
         {visibleNodes.map(node => {
           if (node.parentId) {
             const parent = mockOrgChart.find(p => p.id === node.parentId);
             if (parent) {
               const parentPos = getNodePosition(parent);
               const childPos = getNodePosition(node);
+              
+              // Get department color for line styling
+              const departmentColor = getDepartmentColor(node.department).split(' ')[0].replace('bg-', '');
+              let lineColor = '#000000'; // Default black
+              
+              // Map department colors to line colors
+              switch (node.department) {
+                case 'Engineering': lineColor = '#3b82f6'; break; // Blue
+                case 'Finance': lineColor = '#10b981'; break; // Green
+                case 'Marketing': lineColor = '#f59e0b'; break; // Orange
+                case 'Human Resources': lineColor = '#8b5cf6'; break; // Purple
+                case 'Executive': lineColor = '#ef4444'; break; // Red
+                default: lineColor = '#6b7280'; break; // Gray
+              }
               
               // Calculate line positions
               const parentBottomY = parentPos.y + 80; // Bottom of parent card
@@ -855,51 +869,39 @@ function OrgChartVisualization() {
                 <div key={`${parent.id}-${node.id}`}>
                   {/* Vertical line from parent */}
                   <div 
-                    className="absolute bg-black"
+                    className="absolute"
                     style={{
                       left: `${parentPos.x}px`,
                       top: `${parentBottomY}px`,
                       width: '3px',
                       height: `${midY - parentBottomY}px`,
+                      backgroundColor: lineColor,
                       zIndex: 1,
                       transform: 'translateX(-50%)'
                     }}
                   />
                   {/* Horizontal line across */}
                   <div 
-                    className="absolute bg-black"
+                    className="absolute"
                     style={{
                       left: `${Math.min(parentPos.x, childPos.x)}px`,
                       top: `${midY}px`,
                       width: `${Math.abs(childPos.x - parentPos.x)}px`,
                       height: '3px',
+                      backgroundColor: lineColor,
                       zIndex: 1,
                       transform: 'translateY(-50%)'
                     }}
                   />
                   {/* Vertical line to child */}
                   <div 
-                    className="absolute bg-black"
+                    className="absolute"
                     style={{
                       left: `${childPos.x}px`,
                       top: `${midY}px`,
                       width: '3px',
                       height: `${childTopY - midY}px`,
-                      zIndex: 1,
-                      transform: 'translateX(-50%)'
-                    }}
-                  />
-                  {/* Arrowhead */}
-                  <div 
-                    className="absolute"
-                    style={{
-                      left: `${childPos.x}px`,
-                      top: `${childTopY - 10}px`,
-                      width: '0',
-                      height: '0',
-                      borderLeft: '8px solid transparent',
-                      borderRight: '8px solid transparent',
-                      borderTop: '12px solid #000000',
+                      backgroundColor: lineColor,
                       zIndex: 1,
                       transform: 'translateX(-50%)'
                     }}
