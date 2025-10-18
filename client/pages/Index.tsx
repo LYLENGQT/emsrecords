@@ -838,57 +838,18 @@ function OrgChartVisualization() {
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
       <div className="relative mx-auto" style={{ minWidth: `${dynamicWidth}px` }}>
-        {/* SVG for connections */}
-        <svg 
-          className="absolute inset-0 w-full h-full pointer-events-none" 
-          style={{ zIndex: 1 }}
-          width="100%" 
-          height="100%"
-        >
-          {/* Define arrow marker */}
-          <defs>
-            <marker
-              id="arrowhead"
-              markerWidth="12"
-              markerHeight="8"
-              refX="11"
-              refY="4"
-              orient="auto"
-            >
-              <polygon
-                points="0 0, 12 4, 0 8"
-                fill="#000000"
-              />
-            </marker>
-          </defs>
-          
-          {/* Show all connections - simplified approach */}
-          {visibleNodes.map(node => {
-            if (node.parentId) {
-              const parent = mockOrgChart.find(p => p.id === node.parentId);
-              if (parent) {
-                const parentPos = getNodePosition(parent);
-                const childPos = getNodePosition(node);
-                
-                // Simple straight line from parent to child
-                return (
-                  <line
-                    key={`${parent.id}-${node.id}`}
-                    x1={parentPos.x}
-                    y1={parentPos.y + 80}
-                    x2={childPos.x}
-                    y2={childPos.y}
-                    stroke="#000000"
-                    strokeWidth="3"
-                    markerEnd="url(#arrowhead)"
-                  />
-                );
-              }
-            }
-            return null;
-          })}
-        </svg>
-
+        {/* Test line to see if positioning works */}
+        <div 
+          className="absolute bg-black"
+          style={{
+            left: '100px',
+            top: '100px',
+            width: '200px',
+            height: '3px',
+            zIndex: 5
+          }}
+        />
+        
         {/* Employee nodes */}
         <div className="relative" style={{ zIndex: 2 }}>
         {visibleNodes.map(node => {
