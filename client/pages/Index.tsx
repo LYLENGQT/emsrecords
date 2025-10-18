@@ -776,29 +776,55 @@ function OrgChartVisualization() {
   const getNodePosition = (node: any) => {
     const level = node.level;
     const nodeWidth = 240; // Card width (w-60 = 240px)
-    const minSpacing = nodeWidth + 40; // Minimum spacing between nodes
+    const minSpacing = nodeWidth + 100; // Spacing between nodes
     
-    // Get all visible nodes at this level
-    const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
-    const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
-    
-    // Calculate total width needed for this level
-    const totalWidth = (visibleNodesAtLevel.length - 1) * minSpacing;
-    const containerCenter = 1000; // Center of 2000px container
-    const startX = containerCenter - (totalWidth / 2);
-    
-    // Calculate vertical spacing based on level and number of expanded nodes
+    // Calculate vertical spacing
     const expandedNodesCount = Array.from(expandedNodes).length;
-    const baseVerticalSpacing = 180;
-    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 20);
+    const baseVerticalSpacing = 400; // Large vertical spacing
+    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 50);
     
-    // Add level-based horizontal offset to prevent overlapping
-    const levelOffset = (level - 1) * 30;
+    let x, y;
     
-    return {
-      x: startX + (index * minSpacing) + levelOffset,
-      y: (level - 1) * dynamicVerticalSpacing + 80,
-    };
+    if (level === 1) {
+      // CEO level - center of container
+      x = 1500; // Center of 3000px container
+      y = 80;
+    } else if (level === 2) {
+      // Department heads level - spread across horizontally
+      const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
+      const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
+      
+      const totalWidth = (visibleNodesAtLevel.length - 1) * minSpacing;
+      const containerCenter = 1500; // Center of 3000px container
+      const startX = containerCenter - (totalWidth / 2);
+      x = startX + (index * minSpacing);
+      y = (level - 1) * dynamicVerticalSpacing + 80;
+    } else {
+      // Team members level - dynamic positioning to prevent overlaps
+      const manager = mockOrgChart.find(n => n.id === node.parentId);
+      if (manager) {
+        // Get all direct reports of this manager at this level
+        const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
+        const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
+        
+        if (managerDirectReports.length > 0) {
+          // Get manager position
+          const managerPos = getNodePosition(manager);
+          
+          // Calculate team width with proper spacing
+          const teamTotalWidth = (managerDirectReports.length - 1) * minSpacing;
+          const teamStartX = managerPos.x - (teamTotalWidth / 2);
+          x = teamStartX + (reportIndex * minSpacing);
+        } else {
+          x = 1500; // Fallback to center
+        }
+      } else {
+        x = 1500; // Fallback to center
+      }
+      y = (level - 1) * dynamicVerticalSpacing + 80;
+    }
+    
+    return { x, y };
   };
 
   const getConnectionPath = (parentNode: any, childNode: any) => {
@@ -832,8 +858,12 @@ function OrgChartVisualization() {
 
   // Calculate dynamic container dimensions based on visible nodes
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
-  const dynamicHeight = Math.max(1000, (maxLevel + 1) * 200 + 200);
-  const dynamicWidth = Math.max(2000, visibleNodes.length * 300);
+  const expandedNodesCount = Array.from(expandedNodes).length;
+  const baseVerticalSpacing = 400;
+  const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 50);
+  
+  const dynamicHeight = Math.max(2000, (maxLevel + 1) * dynamicVerticalSpacing + 200);
+  const dynamicWidth = Math.max(4000, visibleNodes.length * 400);
   
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
