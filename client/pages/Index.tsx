@@ -786,178 +786,43 @@ function OrgChartVisualization() {
 
   const visibleNodes = getVisibleNodes();
   
-  // Advanced responsive organizational chart layout system
-  const [chartZoom, setChartZoom] = useState(1);
-  const [containerSize, setContainerSize] = useState({ width: 3000, height: 900 });
-
-  // Handle window resize for responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      const newWidth = Math.max(window.innerWidth * 0.8, 1200);
-      const newHeight = Math.max(window.innerHeight * 0.6, 600);
-      setContainerSize({ width: newWidth, height: newHeight });
-    };
-
-    // Initial size calculation
-    handleResize();
-
-    // Add resize listener
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  // Dynamic spacing configuration
-  const CARD_CONFIG = {
-    width: 220,
-    height: 140,
-    minHorizontalGap: 80, // 2rem equivalent
-    levelVerticalGap: 160, // 4rem equivalent
-    minContainerPadding: 100
-  };
-
-  // Calculate responsive positions with dynamic spacing
-  const calculateResponsivePositions = () => {
-    const positions: { [key: string]: { x: number; y: number } } = {};
-    const levelGroups: { [level: number]: any[] } = {};
-    
-    // Group nodes by level
-    visibleNodes.forEach(node => {
-      if (!levelGroups[node.level]) {
-        levelGroups[node.level] = [];
-      }
-      levelGroups[node.level].push(node);
-    });
-    
-    // Sort each level by ID for consistency
-    Object.keys(levelGroups).forEach(level => {
-      levelGroups[parseInt(level)].sort((a, b) => a.id.localeCompare(b.id));
-    });
-    
-    const levels = Object.keys(levelGroups).map(Number).sort((a, b) => a - b);
-    
-    // Calculate positions for each level
-    levels.forEach((level, levelIndex) => {
-      const nodesAtLevel = levelGroups[level];
-      const yPosition = CARD_CONFIG.minContainerPadding + (levelIndex * CARD_CONFIG.levelVerticalGap);
-      
-      if (level === 1) {
-        // CEO - always centered
-        positions[nodesAtLevel[0].id] = { 
-          x: containerSize.width / 2, 
-          y: yPosition 
-        };
-      } else {
-        // Calculate dynamic spacing for other levels
-        const totalCardsWidth = nodesAtLevel.length * CARD_CONFIG.width;
-        const totalGapsWidth = (nodesAtLevel.length - 1) * CARD_CONFIG.minHorizontalGap;
-        const totalRequiredWidth = totalCardsWidth + totalGapsWidth;
-        
-        // Ensure minimum container width
-        const effectiveContainerWidth = Math.max(containerSize.width, totalRequiredWidth + (CARD_CONFIG.minContainerPadding * 2));
-        
-        // Center the group within the container
-        const startX = (effectiveContainerWidth - totalRequiredWidth) / 2 + (CARD_CONFIG.width / 2);
-        
-        nodesAtLevel.forEach((node, index) => {
-          const xPosition = startX + (index * (CARD_CONFIG.width + CARD_CONFIG.minHorizontalGap));
-          positions[node.id] = { x: xPosition, y: yPosition };
-        });
-      }
-    });
-    
-    return positions;
-  };
-
-  // Calculate child positions relative to their parents
-  const calculateChildPositions = () => {
-    const positions = calculateResponsivePositions();
-    const updatedPositions = { ...positions };
-    
-    // For each parent, center their children below them
-    visibleNodes.forEach(node => {
-      if (node.level > 1) {
-        const manager = mockOrgChart.find(n => n.id === node.parentId);
-        if (manager) {
-          const managerPos = updatedPositions[manager.id];
-          const siblings = visibleNodes.filter(n => n.parentId === manager.id && n.level === node.level);
-          
-          if (siblings.length > 0) {
-            // Calculate spacing for siblings
-            const totalSiblingsWidth = siblings.length * CARD_CONFIG.width;
-            const totalSiblingsGaps = (siblings.length - 1) * CARD_CONFIG.minHorizontalGap;
-            const totalSiblingsSpace = totalSiblingsWidth + totalSiblingsGaps;
-            
-            // Center siblings under parent
-            const siblingsStartX = managerPos.x - (totalSiblingsSpace / 2) + (CARD_CONFIG.width / 2);
-            
-            siblings.forEach((sibling, index) => {
-              const siblingX = siblingsStartX + (index * (CARD_CONFIG.width + CARD_CONFIG.minHorizontalGap));
-              const siblingY = managerPos.y + CARD_CONFIG.levelVerticalGap;
-              
-              updatedPositions[sibling.id] = { x: siblingX, y: siblingY };
-            });
-          }
-        }
-      }
-    });
-    
-    return updatedPositions;
-  };
-
-  const nodePositions = calculateChildPositions();
-  
   const getNodePosition = (node: any) => {
-    const basePosition = nodePositions[node.id] || { x: containerSize.width / 2, y: 100 };
+    const level = node.level;
     
-    // Apply zoom transformation
-    return {
-      x: basePosition.x * chartZoom,
-      y: basePosition.y * chartZoom
-    };
+    if (level === 1) {
+      return { x: 1200, y: 100 };
+    } else if (level === 2) {
+      const departmentPositions = {
+        "2": { x: 200, y: 280 },
+        "3": { x: 500, y: 280 },
+        "4": { x: 800, y: 280 },
+        "5": { x: 1100, y: 280 }
+      };
+      return departmentPositions[node.id] || { x: 800, y: 280 };
+    } else {
+      const manager = mockOrgChart.find(n => n.id === node.parentId);
+      if (!manager) return { x: 800, y: 480 };
+      
+      const managerPos = getNodePosition(manager);
+      const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
+      const reportIndex = managerDirectReports.findIndex(n => n.id === node.id);
+      
+      const teamSpacing = 250;
+      const teamStartX = managerPos.x - ((managerDirectReports.length - 1) * teamSpacing) / 2;
+      
+      return {
+        x: teamStartX + (reportIndex * teamSpacing),
+        y: 480
+      };
+    }
   };
 
-  const getConnectionPath = (parentNode: any, childNode: any) => {
-    const parentPos = getNodePosition(parentNode);
-    const childPos = getNodePosition(childNode);
-    
-    // Calculate connection points (bottom of parent card to top of child card)
-    const parentBottomY = parentPos.y + 80; // Bottom of parent card
-    const childTopY = childPos.y; // Top of child card
-    
-    // Create straight lines with right angles like in the example
-    const midY = (parentBottomY + childTopY) / 2;
-    
-    // Simple L-shaped path: down from parent, then across, then down to child
-    return `M ${parentPos.x} ${parentBottomY} 
-            L ${parentPos.x} ${midY}
-            L ${childPos.x} ${midY}
-            L ${childPos.x} ${childTopY}`;
-  };
-
-
-  // Calculate dynamic container dimensions
-  const calculateContainerDimensions = () => {
-    const maxLevel = Math.max(...visibleNodes.map(n => n.level));
-    const baseHeight = CARD_CONFIG.minContainerPadding + (maxLevel * CARD_CONFIG.levelVerticalGap) + CARD_CONFIG.minContainerPadding;
-    
-    // Calculate maximum width needed
-    let maxWidth = containerSize.width;
-    Object.keys(nodePositions).forEach(nodeId => {
-      const pos = nodePositions[nodeId];
-      maxWidth = Math.max(maxWidth, pos.x + (CARD_CONFIG.width / 2) + CARD_CONFIG.minContainerPadding);
-    });
-    
-    return {
-      width: Math.max(maxWidth * chartZoom, containerSize.width),
-      height: Math.max(baseHeight * chartZoom, containerSize.height)
-    };
-  };
-
-  const containerDimensions = calculateContainerDimensions();
+  const containerHeight = 600;
+  const containerWidth = 1400;
   
   return (
-    <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerDimensions.height}px`, minWidth: `${containerDimensions.width}px` }}>
-      <div className="relative mx-auto transition-all duration-300 ease-in-out" style={{ width: `${containerDimensions.width}px`, height: `${containerDimensions.height}px` }}>
+    <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerHeight}px`, minWidth: `${containerWidth}px` }}>
+      <div className="relative mx-auto" style={{ width: `${containerWidth}px`, height: `${containerHeight}px` }}>
         {/* Connection lines between employees - separate for each department */}
         {visibleNodes.map(node => {
           if (node.parentId) {
@@ -994,8 +859,8 @@ function OrgChartVisualization() {
               
               // Only draw the main vertical line from the first child (to avoid duplicates)
               const isFirstChild = departmentIndex === 0;
-              
-              return (
+
+  return (
                 <div key={`${parent.id}-${node.id}`}>
                   {/* Main vertical line from parent (only for first child) */}
                   {isFirstChild && (
@@ -1042,7 +907,7 @@ function OrgChartVisualization() {
                       transform: 'translateX(-50%)'
                     }}
                   />
-                </div>
+            </div>
               );
             }
           }
@@ -1061,7 +926,7 @@ function OrgChartVisualization() {
               key={node.id}
               className="absolute"
               style={{
-                left: `${position.x - (CARD_CONFIG.width / 2)}px`, // Center the card
+                left: `${position.x - 110}px`, // Center the card (card width is 220px)
                 top: `${position.y}px`,
                 zIndex: 10, // Ensure cards are above connection lines
                 transition: 'all 0.3s ease-in-out', // Smooth transitions
@@ -1076,7 +941,7 @@ function OrgChartVisualization() {
                   <div className="flex flex-col items-center text-center">
                     <div className="w-8 h-8 bg-blue-100 rounded-full mb-3 flex items-center justify-center">
                       <User className="h-4 w-4 text-blue-600" />
-                    </div>
+                            </div>
                     <h3 className="font-semibold text-sm text-gray-900 mb-1 leading-tight">
                       {node.name}
                     </h3>
@@ -1087,14 +952,14 @@ function OrgChartVisualization() {
                     >
                       {node.department}
                     </Badge>
-                  </div>
+              </div>
                   
                   {hasChildren && (
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs text-gray-500">
                         {node.directReports} direct reports
-                      </span>
-                <Button
+                    </span>
+                    <Button
                   variant="ghost"
                         size="sm"
                         onClick={(e) => {
@@ -1110,16 +975,16 @@ function OrgChartVisualization() {
                         ) : (
                           <Plus className="h-3 w-3" />
                         )}
-                </Button>
-                            </div>
-                  )}
+                    </Button>
+        </div>
+      )}
                 </CardContent>
               </Card>
-                          </div>
+            </div>
                   );
         })}
-          </div>
-              </div>
+            </div>
+            </div>
     </div>
   );
 }
@@ -1154,7 +1019,7 @@ export default function Index() {
   // Filter employees based on search and filters
   const filteredEmployees = useMemo(() => {
     return mockEmployees.filter((employee) => {
-      const matchesSearch = 
+      const matchesSearch =
         employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1703,7 +1568,7 @@ export default function Index() {
                     <div className="flex-1">
                       <div className="relative">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
+                <Input
                           placeholder="Search by name, email…"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
@@ -1715,7 +1580,7 @@ export default function Index() {
                       <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                         <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
                   <SelectValue placeholder="All Departments" />
-                </SelectTrigger>
+                  </SelectTrigger>
                         <SelectContent className="rounded-lg border-0 shadow-xl">
                   <SelectItem value="all">All Departments</SelectItem>
                           <SelectItem value="Engineering">Engineering</SelectItem>
@@ -1732,9 +1597,9 @@ export default function Index() {
                     <SelectItem value="all">All Status</SelectItem>
                           <SelectItem value="Active">Active</SelectItem>
                           <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  </SelectContent>
+                </Select>
+              </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1857,9 +1722,9 @@ export default function Index() {
                                 <DropdownMenuItem onClick={() => handleEmployeeAction(employee.id, "documents")} className="rounded-lg">
                                   <FileText className="h-4 w-4 mr-2" />
                                   Documents
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1871,7 +1736,7 @@ export default function Index() {
                   {filteredEmployees.map((employee) => (
                     <EmployeeCard key={employee.id} employee={employee} />
                   ))}
-                            </div>
+                  </div>
               )}
 
               {/* Pagination Controls - FR-RM-001 Requirements */}
@@ -1893,12 +1758,12 @@ export default function Index() {
                     <Button variant="outline" size="sm">
                       3
                               </Button>
-                            </div>
+                          </div>
                   <Button variant="outline" size="sm">
                     Next
                   </Button>
                           </div>
-          </div>
+                        </div>
             </TabsContent>
 
             {/* Organizational Chart Tab - FR-RM-003 Requirements */}
@@ -1907,7 +1772,7 @@ export default function Index() {
                 <div>
                   <h2 className="text-2xl font-bold">Organizational Chart</h2>
                   <p className="text-gray-600">Dynamic organizational structure and hierarchy management - {mockOrgChart.length} total employees</p>
-              </div>
+                        </div>
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
@@ -1927,7 +1792,7 @@ export default function Index() {
                     <div className="flex-1">
                       <div className="relative">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <Input
+                            <Input
               placeholder="Search by name or position"
                           className="pl-12 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
                             />
@@ -1936,7 +1801,7 @@ export default function Index() {
                             <Select>
                       <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
                 <SelectValue placeholder="All Departments" />
-              </SelectTrigger>
+                              </SelectTrigger>
                       <SelectContent className="rounded-lg border-0 shadow-xl">
                 <SelectItem value="all">All Departments</SelectItem>
                         <SelectItem value="Executive">Executive</SelectItem>
@@ -1944,9 +1809,9 @@ export default function Index() {
                         <SelectItem value="Finance">Finance</SelectItem>
                         <SelectItem value="Marketing">Marketing</SelectItem>
                         <SelectItem value="Human Resources">Human Resources</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                              </SelectContent>
+                            </Select>
+                          </div>
                 </CardContent>
               </Card>
 
@@ -1961,7 +1826,7 @@ export default function Index() {
                     <Building2 className="h-4 w-4 mr-2" />
                     Manage Department
                     </Button>
-                          </div>
+                        </div>
                 <div className="flex items-center space-x-2">
                     <Button
                     variant={orgChartViewMode === "table" ? "default" : "outline"}
@@ -1989,7 +1854,7 @@ export default function Index() {
                       <Button variant="outline" size="sm">
                         <Plus className="h-4 w-4" />
                       </Button>
-                    </div>
+                          </div>
                   )}
                 </div>
             </div>
@@ -2046,8 +1911,8 @@ export default function Index() {
                                   </Avatar>
                                   <div>
                                     <p className="font-medium">{node.name}</p>
-                                  </div>
-                                </div>
+                          </div>
+                        </div>
                               </TableCell>
                               <TableCell>{node.title}</TableCell>
                               <TableCell>
@@ -2072,7 +1937,7 @@ export default function Index() {
                                     <Plus className="h-4 w-4 mr-1" />
                                     Add Report
                                   </Button>
-                                </div>
+                      </div>
                               </TableCell>
                             </TableRow>
                             
@@ -2168,7 +2033,6 @@ export default function Index() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setChartZoom(Math.max(0.5, chartZoom - 0.1))}
                           className="h-8 w-8 p-0"
                         >
                           -
@@ -2176,14 +2040,13 @@ export default function Index() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setChartZoom(Math.min(2, chartZoom + 0.1))}
                           className="h-8 w-8 p-0"
                         >
                           +
                         </Button>
                       </div>
                       <span className="text-sm text-gray-600">
-                        Zoom: {Math.round(chartZoom * 100)}% | {visibleNodes.length} employees
+                        Zoom: 80% | {mockOrgChart.length} employees
                       </span>
                     </div>
                   </div>
@@ -2238,7 +2101,7 @@ export default function Index() {
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Document
                   </Button>
-                          </div>
+                </div>
                         </div>
 
               {/* Search Bar - FR-RM-004 Requirements */}
@@ -2262,15 +2125,15 @@ export default function Index() {
 
               {/* Document Category Tabs - FR-RM-004 Requirements */}
               <div className="flex items-center space-x-1 bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-sm rounded-xl p-2">
-                          <Button
+                <Button
                   variant={documentCategory === "all" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setDocumentCategory("all")}
                   className={documentCategory === "all" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
                 >
                   All Documents
-                          </Button>
-                          <Button
+                </Button>
+                <Button
                   variant={documentCategory === "Employee Records" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setDocumentCategory("Employee Records")}
