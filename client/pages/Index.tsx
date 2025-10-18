@@ -776,18 +776,18 @@ function OrgChartVisualization() {
   const getNodePosition = (node: any) => {
     const level = node.level;
     const nodeWidth = 240; // Card width (w-60 = 240px)
-    const minSpacing = nodeWidth + 100; // Spacing between nodes
+    const minSpacing = nodeWidth + 60; // Reduced spacing between nodes
     
-    // Calculate vertical spacing
+    // Calculate vertical spacing - reduced
     const expandedNodesCount = Array.from(expandedNodes).length;
-    const baseVerticalSpacing = 400; // Large vertical spacing
-    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 50);
+    const baseVerticalSpacing = 250; // Reduced vertical spacing
+    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 30);
     
     let x, y;
     
     if (level === 1) {
       // CEO level - center of container
-      x = 1500; // Center of 3000px container
+      x = 1200; // Center of container
       y = 80;
     } else if (level === 2) {
       // Department heads level - spread across horizontally
@@ -795,7 +795,7 @@ function OrgChartVisualization() {
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
       
       const totalWidth = (visibleNodesAtLevel.length - 1) * minSpacing;
-      const containerCenter = 1500; // Center of 3000px container
+      const containerCenter = 1200; // Center of container
       const startX = containerCenter - (totalWidth / 2);
       x = startX + (index * minSpacing);
       y = (level - 1) * dynamicVerticalSpacing + 80;
@@ -816,10 +816,10 @@ function OrgChartVisualization() {
           const teamStartX = managerPos.x - (teamTotalWidth / 2);
           x = teamStartX + (reportIndex * minSpacing);
         } else {
-          x = 1500; // Fallback to center
+          x = 1200; // Fallback to center
         }
       } else {
-        x = 1500; // Fallback to center
+        x = 1200; // Fallback to center
       }
       y = (level - 1) * dynamicVerticalSpacing + 80;
     }
@@ -856,14 +856,14 @@ function OrgChartVisualization() {
     }
   };
 
-  // Calculate dynamic container dimensions based on visible nodes
+  // Calculate dynamic container dimensions based on visible nodes - reduced
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
   const expandedNodesCount = Array.from(expandedNodes).length;
-  const baseVerticalSpacing = 400;
-  const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 50);
+  const baseVerticalSpacing = 250;
+  const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 30);
   
-  const dynamicHeight = Math.max(2000, (maxLevel + 1) * dynamicVerticalSpacing + 200);
-  const dynamicWidth = Math.max(4000, visibleNodes.length * 400);
+  const dynamicHeight = Math.max(1500, (maxLevel + 1) * dynamicVerticalSpacing + 200);
+  const dynamicWidth = Math.max(2500, visibleNodes.length * 320);
   
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
@@ -993,7 +993,7 @@ function OrgChartVisualization() {
                 {node.name}
                       </h4>
                       <p className="text-xs text-gray-600 truncate">
-                {node.title}
+            {node.title}
                       </p>
               </div>
             </div>
@@ -1010,8 +1010,8 @@ function OrgChartVisualization() {
                       <span className="text-xs text-gray-500">
                         {node.directReports} direct reports
                       </span>
-                      <Button
-                        variant="ghost"
+                <Button
+                  variant="ghost"
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1026,7 +1026,7 @@ function OrgChartVisualization() {
                         ) : (
                           <Plus className="h-3 w-3" />
                         )}
-                      </Button>
+                </Button>
                             </div>
                   )}
                 </CardContent>
@@ -1271,11 +1271,11 @@ export default function Index() {
           {trend && (
             <p className="text-xs text-gray-500 mt-2">{trend}</p>
           )}
-        </div>
+            </div>
         <div className={cn("p-4 rounded-xl shadow-lg", color || "bg-gradient-to-br from-blue-500 to-blue-600")}>
           <Icon className={cn("h-7 w-7", color ? "text-white" : "text-white")} />
-        </div>
-      </div>
+              </div>
+              </div>
     </Card>
   );
 
@@ -1299,7 +1299,7 @@ export default function Index() {
               </Badge>
               <Badge 
                 variant={employee.status === "Active" ? "default" : "secondary"}
-                className={cn(
+            className={cn(
                   "text-xs",
                   employee.status === "Active" 
                     ? "bg-green-100 text-green-700 border-green-200" 
@@ -1308,7 +1308,7 @@ export default function Index() {
               >
                 {employee.status}
               </Badge>
-            </div>
+          </div>
             <div className="flex flex-wrap gap-1 mb-3">
               {employee.skills.slice(0, 3).map((skill: string) => (
                 <Badge key={skill} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
@@ -1320,14 +1320,14 @@ export default function Index() {
                   +{employee.skills.length - 3} more
                 </Badge>
               )}
-            </div>
+        </div>
             <div className="flex items-center space-x-4 text-xs text-gray-500">
               <div className="flex items-center space-x-1">
                 <Mail className="h-3 w-3" />
                 <span>{employee.email}</span>
-              </div>
+                </div>
             </div>
-          </div>
+      </div>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -1362,12 +1362,12 @@ export default function Index() {
     const isExpanded = expandedOrgNodes.has(node.id);
     const hasReports = node.directReports > 0;
 
-    return (
+  return (
       <Card className={cn("p-4", level > 0 && "ml-8")}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {hasReports && (
-                              <Button
+          <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => toggleOrgNode(node.id)}
@@ -1378,7 +1378,7 @@ export default function Index() {
                 ) : (
                   <ChevronRight className="h-4 w-4" />
                 )}
-                              </Button>
+          </Button>
             )}
             <Avatar className="h-10 w-10">
               <AvatarFallback>
@@ -1395,14 +1395,14 @@ export default function Index() {
                 <Badge variant="outline" className="text-xs">
                   {node.directReports} direct reports
                 </Badge>
-              </div>
+        </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm">
               <Pencil className="h-4 w-4 mr-2" />
               Edit
-                              </Button>
+            </Button>
             <Button variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
               Add Report
@@ -1413,7 +1413,7 @@ export default function Index() {
                 View Chart Mode
               </Button>
             )}
-                            </div>
+            </div>
                           </div>
       </Card>
     );
@@ -1461,22 +1461,22 @@ export default function Index() {
                   <Shield className="h-3 w-3 mr-1" />
                   Compliance Required
                 </Badge>
-              )}
-                  </div>
+            )}
+          </div>
             <div className="flex flex-wrap gap-1 mt-2">
               {document.tags.map((tag: string) => (
                 <Badge key={tag} variant="outline" className="text-xs">
                   {tag}
                 </Badge>
               ))}
-          </div>
-        </div>
+      </div>
+              </div>
             </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <Eye className="h-4 w-4 mr-2" />
             View
-          </Button>
+                    </Button>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Download
@@ -1515,7 +1515,7 @@ export default function Index() {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <Button 
+                <Button
               onClick={() => setShowAddEmployeeModal(true)}
               className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
             >
@@ -1525,9 +1525,9 @@ export default function Index() {
             <Button variant="outline" size="sm" className="border-gray-300 hover:bg-gray-50">
               <Download className="h-4 w-4 mr-2" />
               Export
-            </Button>
-          </div>
-        </div>
+                </Button>
+              </div>
+            </div>
         </header>
 
       {/* Main Content */}
@@ -1608,7 +1608,7 @@ export default function Index() {
                     <div className="flex-1">
                       <div className="relative">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
+              <Input
                           placeholder="Search by name, email…"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
@@ -1619,10 +1619,10 @@ export default function Index() {
                     <div className="flex gap-4">
                       <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                         <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
-                          <SelectValue placeholder="All Departments" />
-                  </SelectTrigger>
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
                         <SelectContent className="rounded-lg border-0 shadow-xl">
-                          <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="all">All Departments</SelectItem>
                           <SelectItem value="Engineering">Engineering</SelectItem>
                           <SelectItem value="Product">Product</SelectItem>
                           <SelectItem value="Finance">Finance</SelectItem>
@@ -1637,9 +1637,9 @@ export default function Index() {
                     <SelectItem value="all">All Status</SelectItem>
                           <SelectItem value="Active">Active</SelectItem>
                           <SelectItem value="Inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                </SelectContent>
+              </Select>
+            </div>
                   </div>
                 </CardContent>
               </Card>
@@ -1675,7 +1675,7 @@ export default function Index() {
               {viewMode === "list" ? (
                 <Card>
                   <Table>
-                    <TableHeader>
+              <TableHeader>
                       <TableRow>
                         <TableHead>EMPLOYEE ID</TableHead>
                         <TableHead>EMPLOYEE NAME</TableHead>
@@ -1685,9 +1685,9 @@ export default function Index() {
                         <TableHead>STATUS</TableHead>
                         <TableHead>JOINED DATE</TableHead>
                         <TableHead>ACTION</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                       {filteredEmployees.map((employee) => (
                         <TableRow key={employee.id}>
                           <TableCell className="font-mono text-sm">
@@ -1762,9 +1762,9 @@ export default function Index() {
                                 <DropdownMenuItem onClick={() => handleEmployeeAction(employee.id, "documents")} className="rounded-lg">
                                   <FileText className="h-4 w-4 mr-2" />
                                   Documents
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1776,7 +1776,7 @@ export default function Index() {
                   {filteredEmployees.map((employee) => (
                     <EmployeeCard key={employee.id} employee={employee} />
                   ))}
-                  </div>
+                            </div>
               )}
 
               {/* Pagination Controls - FR-RM-001 Requirements */}
@@ -1787,23 +1787,23 @@ export default function Index() {
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm" disabled>
                     Previous
-                  </Button>
+                              </Button>
                   <div className="flex items-center space-x-1">
                     <Button variant="default" size="sm" className="bg-blue-600 hover:bg-blue-700">
                       1
-                    </Button>
+                                  </Button>
                     <Button variant="outline" size="sm">
                       2
                     </Button>
                     <Button variant="outline" size="sm">
                       3
-                    </Button>
-                          </div>
+                              </Button>
+                            </div>
                   <Button variant="outline" size="sm">
                     Next
                   </Button>
                           </div>
-                        </div>
+          </div>
             </TabsContent>
 
             {/* Organizational Chart Tab - FR-RM-003 Requirements */}
@@ -1812,7 +1812,7 @@ export default function Index() {
                 <div>
                   <h2 className="text-2xl font-bold">Organizational Chart</h2>
                   <p className="text-gray-600">Dynamic organizational structure and hierarchy management - {mockOrgChart.length} total employees</p>
-                        </div>
+              </div>
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
@@ -1822,7 +1822,7 @@ export default function Index() {
                     <Plus className="h-4 w-4 mr-2" />
                     Add Employee
                   </Button>
-                </div>
+        </div>
               </div>
 
               {/* Search and Filter - FR-RM-003 Requirements */}
@@ -1832,43 +1832,43 @@ export default function Index() {
                     <div className="flex-1">
                       <div className="relative">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <Input
-                          placeholder="Search by name or position"
+            <Input
+              placeholder="Search by name or position"
                           className="pl-12 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-sm"
                             />
                           </div>
                           </div>
                             <Select>
                       <SelectTrigger className="w-48 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg">
-                        <SelectValue placeholder="All Departments" />
-                              </SelectTrigger>
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
                       <SelectContent className="rounded-lg border-0 shadow-xl">
-                        <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                         <SelectItem value="Executive">Executive</SelectItem>
                         <SelectItem value="Engineering">Engineering</SelectItem>
                         <SelectItem value="Finance">Finance</SelectItem>
                         <SelectItem value="Marketing">Marketing</SelectItem>
                         <SelectItem value="Human Resources">Human Resources</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+              </SelectContent>
+            </Select>
+          </div>
                 </CardContent>
               </Card>
 
               {/* Action Buttons - FR-RM-003 Requirements */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Button 
-                    variant="outline" 
+                    <Button
+                      variant="outline"
                     onClick={() => setShowManageDepartmentModal(true)}
                     className="border-gray-300 hover:bg-gray-50"
                   >
                     <Building2 className="h-4 w-4 mr-2" />
                     Manage Department
-                  </Button>
+                    </Button>
                           </div>
                 <div className="flex items-center space-x-2">
-                  <Button
+                    <Button
                     variant={orgChartViewMode === "table" ? "default" : "outline"}
                     size="sm"
                     onClick={() => setOrgChartViewMode("table")}
@@ -1876,7 +1876,7 @@ export default function Index() {
                   >
                     <TableIcon className="h-4 w-4 mr-2" />
                     Table View
-                  </Button>
+                    </Button>
                   <Button
                     variant={orgChartViewMode === "card" ? "default" : "outline"}
                     size="sm"
@@ -1903,10 +1903,10 @@ export default function Index() {
                       <Button variant="outline" size="sm">
                         <Plus className="h-4 w-4" />
                       </Button>
-                        </div>
-                  )}
-                      </div>
-              </div>
+        </div>
+      )}
+            </div>
+            </div>
 
               {/* Table View - FR-RM-003 Requirements */}
               {orgChartViewMode === "table" && (
@@ -1933,8 +1933,8 @@ export default function Index() {
                               </Avatar>
                               <div>
                                 <p className="font-medium">{node.name}</p>
-                              </div>
-                            </div>
+            </div>
+          </div>
                           </TableCell>
                           <TableCell>{node.title}</TableCell>
                           <TableCell>
@@ -1946,7 +1946,7 @@ export default function Index() {
                             <div className="flex items-center space-x-2">
                               <span className="text-sm font-medium">{node.directReports}</span>
                               {node.directReports > 0 && (
-                          <Button
+            <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => toggleOrgNode(node.id)}
@@ -1957,9 +1957,9 @@ export default function Index() {
                                   ) : (
                                     <Plus className="h-3 w-3" />
                                   )}
-                          </Button>
-                              )}
-                            </div>
+            </Button>
+      )}
+    </div>
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
@@ -1996,7 +1996,7 @@ export default function Index() {
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Card View</h3>
                     <p className="text-sm text-gray-600">{mockOrgChart.length} employees</p>
-                  </div>
+          </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {mockOrgChart.map((node) => (
                       <Card key={node.id} className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
@@ -2035,35 +2035,35 @@ export default function Index() {
                                       )}
                           </Button>
                                   )}
-                                </div>
-                              </div>
+            </div>
+              </div>
                             </div>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm" className="hover:bg-gray-100">
                                   <EllipsisVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
+                        </Button>
+                      </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="shadow-xl border-0 rounded-xl">
-                                <DropdownMenuItem 
+                        <DropdownMenuItem
                                   className="rounded-lg"
                                   onClick={() => setOrgChartViewMode("chart")}
-                                >
+                        >
                                   <Eye className="h-4 w-4 mr-2" />
                                   View Chart
-                                </DropdownMenuItem>
+                        </DropdownMenuItem>
                                 <DropdownMenuItem className="rounded-lg">
                                   <Pencil className="h-4 w-4 mr-2" />
                                   Edit
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-                </div>
+                          </div>
+                          </div>
               )}
 
               {/* Chart View - FR-RM-003 Requirements */}
@@ -2074,8 +2074,8 @@ export default function Index() {
                     <div className="flex items-center space-x-4">
                       <span className="text-sm text-gray-600">Zoom: 80%</span>
                       <span className="text-sm text-gray-600">{mockOrgChart.length} employees</span>
-                    </div>
-                  </div>
+                        </div>
+                        </div>
                   
                   {/* Connection Lines Legend */}
                   <div className="bg-blue-50/50 backdrop-blur-sm border border-blue-200 rounded-lg p-4">
@@ -2084,16 +2084,16 @@ export default function Index() {
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-0.5 bg-blue-500"></div>
                         <span className="text-blue-700">Executive Reports</span>
-                      </div>
+                          </div>
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-0.5 bg-green-500"></div>
                         <span className="text-green-700">Direct Reports</span>
-                      </div>
+                          </div>
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-0.5 bg-gray-500"></div>
                         <span className="text-gray-700">Other Relationships</span>
-                      </div>
-                    </div>
+                        </div>
+                          </div>
                     <p className="text-xs text-gray-600 mt-2">Click on employee cards to expand/collapse their direct reports</p>
                   </div>
                   
@@ -2149,8 +2149,8 @@ export default function Index() {
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Document
                   </Button>
-                </div>
-              </div>
+                          </div>
+                        </div>
 
               {/* Search Bar - FR-RM-004 Requirements */}
               <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg rounded-xl">
@@ -2173,30 +2173,30 @@ export default function Index() {
 
               {/* Document Category Tabs - FR-RM-004 Requirements */}
               <div className="flex items-center space-x-1 bg-white/70 backdrop-blur-sm border border-gray-200/50 shadow-sm rounded-xl p-2">
-                <Button
+                          <Button
                   variant={documentCategory === "all" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setDocumentCategory("all")}
                   className={documentCategory === "all" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
                 >
                   All Documents
-                </Button>
-                <Button
+                          </Button>
+                          <Button
                   variant={documentCategory === "Employee Records" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setDocumentCategory("Employee Records")}
                   className={documentCategory === "Employee Records" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
                 >
                   Employee Records
-                </Button>
-                <Button
+                          </Button>
+                  <Button
                   variant={documentCategory === "Policies" ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setDocumentCategory("Policies")}
                   className={documentCategory === "Policies" ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
                 >
                   Policies
-                </Button>
+                  </Button>
                 <Button
                   variant={documentCategory === "Compliance" ? "default" : "ghost"}
                   size="sm"
@@ -3337,7 +3337,7 @@ export default function Index() {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </TableCell>
+                        </TableCell>
                       </TableRow>
                   </TableBody>
                 </Table>
