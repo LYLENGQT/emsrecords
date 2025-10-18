@@ -737,7 +737,7 @@ type ViewMode = "list" | "grid" | "chart";
 
 // Organizational Chart Visualization Component
 function OrgChartVisualization() {
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1"])); // CEO expanded by default
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(["1", "2", "3", "4", "5"])); // All departments expanded by default
   
   const toggleNode = (nodeId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -776,18 +776,16 @@ function OrgChartVisualization() {
   const getNodePosition = (node: any) => {
     const level = node.level;
     const nodeWidth = 240; // Card width (w-60 = 240px)
-    const minSpacing = nodeWidth + 80; // Spacing between nodes
+    const minSpacing = nodeWidth + 40; // Tighter spacing to match the image
     
-    // Calculate vertical spacing
-    const expandedNodesCount = Array.from(expandedNodes).length;
-    const baseVerticalSpacing = 300; // Vertical spacing
-    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 40);
+    // Fixed vertical spacing to match the image
+    const verticalSpacing = 280;
     
     let x, y;
     
     if (level === 1) {
       // CEO level - center of container
-      x = 1500; // Center of container
+      x = 1200; // Center of container
       y = 80;
     } else if (level === 2) {
       // Department heads level - spread across horizontally
@@ -795,12 +793,12 @@ function OrgChartVisualization() {
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
       
       const totalWidth = (visibleNodesAtLevel.length - 1) * minSpacing;
-      const containerCenter = 1500; // Center of container
+      const containerCenter = 1200; // Center of container
       const startX = containerCenter - (totalWidth / 2);
       x = startX + (index * minSpacing);
-      y = (level - 1) * dynamicVerticalSpacing + 80;
+      y = (level - 1) * verticalSpacing + 80;
     } else {
-      // Team members level - dynamic positioning to prevent overlaps
+      // Team members level - center under their manager
       const manager = mockOrgChart.find(n => n.id === node.parentId);
       if (manager) {
         // Get all direct reports of this manager at this level
@@ -816,12 +814,12 @@ function OrgChartVisualization() {
           const teamStartX = managerPos.x - (teamTotalWidth / 2);
           x = teamStartX + (reportIndex * minSpacing);
         } else {
-          x = 1500; // Fallback to center
+          x = 1200; // Fallback to center
         }
       } else {
-        x = 1500; // Fallback to center
+        x = 1200; // Fallback to center
       }
-      y = (level - 1) * dynamicVerticalSpacing + 80;
+      y = (level - 1) * verticalSpacing + 80;
     }
     
     return { x, y };
@@ -856,11 +854,9 @@ function OrgChartVisualization() {
     }
   };
 
-  // Calculate dynamic container dimensions based on visible nodes
+  // Calculate container dimensions to match the image layout
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
-  const expandedNodesCount = Array.from(expandedNodes).length;
-  const baseVerticalSpacing = 300;
-  const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 40);
+  const verticalSpacing = 280;
   
   // Calculate dynamic width based on the widest level
   const maxNodesAtLevel = Math.max(...Array.from({length: maxLevel + 1}, (_, level) => {
@@ -868,8 +864,8 @@ function OrgChartVisualization() {
     return nodesAtLevel.length;
   }));
   
-  const dynamicHeight = Math.max(2000, (maxLevel + 1) * dynamicVerticalSpacing + 200);
-  const dynamicWidth = Math.max(4000, maxNodesAtLevel * 400);
+  const dynamicHeight = Math.max(1200, (maxLevel + 1) * verticalSpacing + 200);
+  const dynamicWidth = Math.max(2800, maxNodesAtLevel * 320);
   
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
