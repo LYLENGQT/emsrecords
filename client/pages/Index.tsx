@@ -860,59 +860,64 @@ function OrgChartVisualization() {
                 default: lineColor = '#6b7280'; break; // Gray
               }
               
-              // Calculate line positions with department separation
+              // Calculate line positions for traditional org chart style
               const parentBottomY = parentPos.y + 80; // Bottom of parent card
               const childTopY = childPos.y; // Top of child card
               
-              // Create separate vertical lines for each department from CEO
-              // Get all direct reports of the parent to calculate department spacing
+              // Get all direct reports of the parent to calculate main horizontal line
               const parentDirectReports = mockOrgChart.filter(n => n.parentId === parent.id);
               const departmentIndex = parentDirectReports.findIndex(n => n.id === node.id);
               
-              // Calculate spacing for department separation
-              const departmentSpacing = 40; // Space between department lines
-              const startOffset = -(parentDirectReports.length - 1) * departmentSpacing / 2;
-              const departmentOffset = startOffset + (departmentIndex * departmentSpacing);
+              // Calculate positions for traditional org chart
+              const mainVerticalY = parentBottomY + 50; // Main vertical line extends down from parent
+              const mainHorizontalY = mainVerticalY + 50; // Horizontal branch line
               
-              const midY = (parentBottomY + childTopY) / 2;
+              // Only draw the main vertical line from the first child (to avoid duplicates)
+              const isFirstChild = departmentIndex === 0;
               
               return (
                 <div key={`${parent.id}-${node.id}`}>
-                  {/* Vertical line from parent - offset for department separation */}
-                  <div 
-                    className="absolute"
-                    style={{
-                      left: `${parentPos.x + departmentOffset}px`,
-                      top: `${parentBottomY}px`,
-                      width: '3px',
-                      height: `${midY - parentBottomY}px`,
-                      backgroundColor: lineColor,
-                      zIndex: 1,
-                      transform: 'translateX(-50%)'
-                    }}
-                  />
-                  {/* Horizontal line across */}
-                  <div 
-                    className="absolute"
-                    style={{
-                      left: `${Math.min(parentPos.x + departmentOffset, childPos.x)}px`,
-                      top: `${midY}px`,
-                      width: `${Math.abs(childPos.x - (parentPos.x + departmentOffset))}px`,
-                      height: '3px',
-                      backgroundColor: lineColor,
-                      zIndex: 1,
-                      transform: 'translateY(-50%)'
-                    }}
-                  />
-                  {/* Vertical line to child */}
+                  {/* Main vertical line from parent (only for first child) */}
+                  {isFirstChild && (
+                    <div 
+                      className="absolute"
+                      style={{
+                        left: `${parentPos.x}px`,
+                        top: `${parentBottomY}px`,
+                        width: '3px',
+                        height: `${mainVerticalY - parentBottomY}px`,
+                        backgroundColor: '#000000',
+                        zIndex: 1,
+                        transform: 'translateX(-50%)'
+                      }}
+                    />
+                  )}
+                  
+                  {/* Main horizontal branch line (only for first child) */}
+                  {isFirstChild && (
+                    <div 
+                      className="absolute"
+                      style={{
+                        left: `${Math.min(...parentDirectReports.map(r => getNodePosition(r).x))}px`,
+                        top: `${mainHorizontalY}px`,
+                        width: `${Math.max(...parentDirectReports.map(r => getNodePosition(r).x)) - Math.min(...parentDirectReports.map(r => getNodePosition(r).x))}px`,
+                        height: '3px',
+                        backgroundColor: '#000000',
+                        zIndex: 1,
+                        transform: 'translateY(-50%)'
+                      }}
+                    />
+                  )}
+                  
+                  {/* Vertical line down to this specific child */}
                   <div 
                     className="absolute"
                     style={{
                       left: `${childPos.x}px`,
-                      top: `${midY}px`,
+                      top: `${mainHorizontalY}px`,
                       width: '3px',
-                      height: `${childTopY - midY}px`,
-                      backgroundColor: lineColor,
+                      height: `${childTopY - mainHorizontalY}px`,
+                      backgroundColor: '#000000',
                       zIndex: 1,
                       transform: 'translateX(-50%)'
                     }}
