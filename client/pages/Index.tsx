@@ -789,25 +789,25 @@ function OrgChartVisualization() {
   const getNodePosition = (node: any) => {
     const level = node.level;
     const nodeWidth = 200; // Card width
-    const horizontalSpacing = 280; // Spacing between cards horizontally
-    const verticalSpacing = 220; // Spacing between levels
+    const horizontalSpacing = 320; // Increased spacing between cards horizontally
+    const verticalSpacing = 280; // Increased spacing between levels
     
     let x, y;
     
     if (level === 1) {
       // CEO level - center
-      x = 400;
-      y = 50;
+      x = 600;
+      y = 80;
     } else if (level === 2) {
-      // Department heads - spread horizontally
+      // Department heads - spread horizontally with more space
       const visibleNodesAtLevel = visibleNodes.filter(n => n.level === level);
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
       const totalWidth = (visibleNodesAtLevel.length - 1) * horizontalSpacing;
-      const startX = 400 - (totalWidth / 2);
+      const startX = 600 - (totalWidth / 2);
       x = startX + (index * horizontalSpacing);
       y = level * verticalSpacing;
     } else {
-      // Team members - center under their manager
+      // Team members - center under their manager with proper spacing
       const manager = mockOrgChart.find(n => n.id === node.parentId);
       if (manager) {
         const managerDirectReports = visibleNodes.filter(n => n.parentId === manager.id && n.level === level);
@@ -815,15 +815,15 @@ function OrgChartVisualization() {
         
         if (managerDirectReports.length > 0) {
           const managerPos = getNodePosition(manager);
-          const teamSpacing = 200;
+          const teamSpacing = 250; // Increased team spacing
           const teamTotalWidth = (managerDirectReports.length - 1) * teamSpacing;
           const teamStartX = managerPos.x - (teamTotalWidth / 2);
           x = teamStartX + (reportIndex * teamSpacing);
         } else {
-          x = 400;
+          x = 600;
         }
       } else {
-        x = 400;
+        x = 600;
       }
       y = level * verticalSpacing;
     }
@@ -851,8 +851,8 @@ function OrgChartVisualization() {
 
 
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
-  const containerHeight = (maxLevel + 1) * 220 + 100;
-  const containerWidth = 1200;
+  const containerHeight = (maxLevel + 1) * 280 + 200;
+  const containerWidth = 1600;
   
   return (
     <div className="relative w-full overflow-auto bg-white rounded-lg border border-gray-200" style={{ minHeight: `${containerHeight}px`, minWidth: `${containerWidth}px` }}>
