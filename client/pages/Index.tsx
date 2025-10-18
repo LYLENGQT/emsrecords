@@ -1119,9 +1119,18 @@ export default function Index() {
   const [orgChartViewMode, setOrgChartViewMode] = useState<"table" | "chart">("table");
   const [showManageDepartmentModal, setShowManageDepartmentModal] = useState(false);
   const [showOrgChartModal, setShowOrgChartModal] = useState(false);
+  const chartScrollRef = useRef<HTMLDivElement | null>(null);
   
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Ensure scroller is usable without locking to center
+  useLayoutEffect(() => {
+    if (orgChartViewMode !== "chart") return;
+    const scroller = chartScrollRef.current;
+    if (!scroller) return;
+    // Do not force centering; keep user's last scroll position
+  }, [orgChartViewMode, chartZoom]);
 
   // Filter employees based on search and filters
   const filteredEmployees = useMemo(() => {
@@ -2101,7 +2110,12 @@ export default function Index() {
                     </div>
                   </div>
                   
-                  <OrgChartVisualization chartZoom={chartZoom} />
+                  {/* Scrollable, centered chart container */}
+                  <div ref={chartScrollRef} className="w-full overflow-x-auto scroll-smooth">
+                    <div className="inline-block min-w-full">
+                      <OrgChartVisualization chartZoom={chartZoom} />
+                    </div>
+                  </div>
                 </div>
               )}
 
