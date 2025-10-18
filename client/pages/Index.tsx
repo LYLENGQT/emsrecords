@@ -776,18 +776,18 @@ function OrgChartVisualization() {
   const getNodePosition = (node: any) => {
     const level = node.level;
     const nodeWidth = 240; // Card width (w-60 = 240px)
-    const minSpacing = nodeWidth + 60; // Reduced spacing between nodes
+    const minSpacing = nodeWidth + 80; // Spacing between nodes
     
-    // Calculate vertical spacing - reduced
+    // Calculate vertical spacing
     const expandedNodesCount = Array.from(expandedNodes).length;
-    const baseVerticalSpacing = 250; // Reduced vertical spacing
-    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 30);
+    const baseVerticalSpacing = 300; // Vertical spacing
+    const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 40);
     
     let x, y;
     
     if (level === 1) {
       // CEO level - center of container
-      x = 1200; // Center of container
+      x = 1500; // Center of container
       y = 80;
     } else if (level === 2) {
       // Department heads level - spread across horizontally
@@ -795,7 +795,7 @@ function OrgChartVisualization() {
       const index = visibleNodesAtLevel.findIndex(n => n.id === node.id);
       
       const totalWidth = (visibleNodesAtLevel.length - 1) * minSpacing;
-      const containerCenter = 1200; // Center of container
+      const containerCenter = 1500; // Center of container
       const startX = containerCenter - (totalWidth / 2);
       x = startX + (index * minSpacing);
       y = (level - 1) * dynamicVerticalSpacing + 80;
@@ -816,10 +816,10 @@ function OrgChartVisualization() {
           const teamStartX = managerPos.x - (teamTotalWidth / 2);
           x = teamStartX + (reportIndex * minSpacing);
         } else {
-          x = 1200; // Fallback to center
+          x = 1500; // Fallback to center
         }
       } else {
-        x = 1200; // Fallback to center
+        x = 1500; // Fallback to center
       }
       y = (level - 1) * dynamicVerticalSpacing + 80;
     }
@@ -856,14 +856,20 @@ function OrgChartVisualization() {
     }
   };
 
-  // Calculate dynamic container dimensions based on visible nodes - reduced
+  // Calculate dynamic container dimensions based on visible nodes
   const maxLevel = Math.max(...visibleNodes.map(n => n.level));
   const expandedNodesCount = Array.from(expandedNodes).length;
-  const baseVerticalSpacing = 250;
-  const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 30);
+  const baseVerticalSpacing = 300;
+  const dynamicVerticalSpacing = baseVerticalSpacing + (expandedNodesCount * 40);
   
-  const dynamicHeight = Math.max(1500, (maxLevel + 1) * dynamicVerticalSpacing + 200);
-  const dynamicWidth = Math.max(2500, visibleNodes.length * 320);
+  // Calculate dynamic width based on the widest level
+  const maxNodesAtLevel = Math.max(...Array.from({length: maxLevel + 1}, (_, level) => {
+    const nodesAtLevel = visibleNodes.filter(n => n.level === level);
+    return nodesAtLevel.length;
+  }));
+  
+  const dynamicHeight = Math.max(2000, (maxLevel + 1) * dynamicVerticalSpacing + 200);
+  const dynamicWidth = Math.max(4000, maxNodesAtLevel * 400);
   
   return (
     <div className="relative w-full overflow-x-auto" style={{ minHeight: `${dynamicHeight}px` }}>
